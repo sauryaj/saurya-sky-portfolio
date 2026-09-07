@@ -1,4 +1,4 @@
-import { Edges, Text, TextProps } from "@react-three/drei";
+import { Edges, Line, Text, TextProps } from "@react-three/drei";
 import { ThreeEvent } from "@react-three/fiber";
 import gsap from "gsap";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -107,7 +107,22 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, da
           <planeGeometry args={[4.2, 2, 1]} />
           <meshBasicMaterial color="#FFF" transparent opacity={0.3}/>
           {/* <meshPhysicalMaterial transmission={1} roughness={0.3} /> */}
-          <Edges color="black" lineWidth={1.5} />
+          { project.featured && <Edges color="black" lineWidth={2} /> }
+
+          { !project.featured && <Line
+            points={[
+              [-2.1, -1, 0.11],
+              [2.1, -1, 0.11],
+              [2.1, 1, 0.11],
+              [-2.1, 1, 0.11],
+              [-2.1, -1, 0.11],
+            ]}
+            color="#777"
+            lineWidth={1.5}
+            dashed
+            dashSize={0.12}
+            gapSize={0.08}
+          />}
         </mesh>
         <Text
           {...titleProps}

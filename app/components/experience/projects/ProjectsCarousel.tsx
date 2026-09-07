@@ -16,7 +16,7 @@ const ProjectsCarousel = () => {
   };
   const tiles = useMemo(() => {
     const fov = Math.PI;
-    const distance = 10;
+    const distance = 11;
 
     const columns = Math.ceil(PROJECTS.length / 2);
 

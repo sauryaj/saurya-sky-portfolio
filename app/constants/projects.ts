@@ -43,6 +43,7 @@ export const PROJECTS: Project[] = [
     date: 'Mar 2025',
     subtext: 'Hosted a Sundowner event which was recorded and is out on YouTube. Furthermore, I performed a UKG/140 DJ set at a local club.',
     url: 'https://www.youtube.com/watch?v=oauQSEySkoQ',
+    featured: true,
   },
   {
     title: 'Portfolio',
@@ -63,22 +64,10 @@ export const PROJECTS: Project[] = [
     url: 'https://github.com/mohitvirli/slide-sync',
   },
   {
-    title: 'Login Page',
-    date: 'Oct 2025',
-    subtext: 'An experimental authentication UI exploring modern layouts, animations and frontend interaction patterns.',
-    url: 'https://github.com/mohitvirli/login-page',
-  },
-  {
     title: 'Reso',
     date: 'May 2026',
     subtext: 'A personal music player and visualizer.',
     url: 'https://reso.clevir.li',
-  },
-  {
-    title: 'Labs',
-    date: 'May 2026',
-    subtext: 'My experiments.',
-    url: 'https://labs.clevir.li',
   },
   {
     title: 'Todoist Graph',
@@ -86,4 +75,23 @@ export const PROJECTS: Project[] = [
     subtext: 'A GitHub-style productivity heatmap for Todoist built with Electron, visualizing completed tasks over time.',
     url: 'https://labs.clevir.li/todoist-graph',
   },
+  {
+    title: 'Jobbery',
+    date: 'May 2026',
+    subtext: 'Custom job application tracker.',
+    url: 'https://jobbery.clevir.li/',
+  },
+  {
+    title: 'Present',
+    date: 'Jun 2026',
+    subtext: 'Minimal, privacy-first journaling app with passwordless sync and AI reflections',
+    url: 'https://present.clevir.li',
+    featured: true,
+  },
+  {
+    title: 'Splittle',
+    date: 'Aug 2026',
+    subtext: 'A word game.',
+    url: 'https://splittle.clevir.li',
+  }
 ];
