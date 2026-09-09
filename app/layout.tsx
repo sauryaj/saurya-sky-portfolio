@@ -15,12 +15,12 @@ const vercettiFont = localFont({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com/'),
-  title: "Mohit Virli ✌️",
-  description: "A frontend developer by profession, a creative at heart.",
-  keywords: "Mohit Virli, Frontend Engineer, React Developer, Three.js, Creative Developer, Web Development, Angular, JavaScript, TypeScript, Portfolio",
-  authors: [{ name: "Mohit Virli" }],
-  creator: "Mohit Virli",
-  publisher: "Mohit Virli",
+  title: "Saurya Janbandhu | Systems Engineer",
+  description: "Systems engineer focused on enterprise cloud resilience, zero-trust identity, and endpoint management.",
+  keywords: "Saurya Janbandhu, Systems Engineer, Microsoft Intune, Microsoft Entra ID, Azure, Zero Trust, Endpoint Management, Cloud Security",
+  authors: [{ name: "Saurya Janbandhu" }],
+  creator: "Saurya Janbandhu",
+  publisher: "Saurya Janbandhu",
   formatDetection: {
     email: false,
     address: false,
@@ -37,19 +37,16 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Mohit Virli - Frontend Engineer",
-    description: "Frontend engineer by profession, creative at heart.",
-    siteName: "Mohit Virli's Portfolio",
+    title: "Saurya Janbandhu - Systems Engineer",
+    description: "Enterprise cloud resilience, zero-trust identity, and endpoint management.",
+    siteName: "Saurya Janbandhu's Portfolio",
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mohit Virli - Frontend Engineer",
-    description: "Frontend engineer by profession, creative at heart.",
-  },
-  verification: {
-    google: "GsRYY-ivL0F_VKkfs5KAeToliqz0gCrRAJKKmFkAxBA",
+    title: "Saurya Janbandhu - Systems Engineer",
+    description: "Enterprise cloud resilience, zero-trust identity, and endpoint management.",
   },
 };
 
