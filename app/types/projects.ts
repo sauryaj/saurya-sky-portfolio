@@ -10,4 +10,5 @@ export interface Project {
   url?: string;
   urls?: ProjectUrl[];
   featured?: boolean;
+  fontSize?: number;
 }

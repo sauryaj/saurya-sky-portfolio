@@ -38,6 +38,13 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, da
     anchorY: "top",
   }), []);
 
+  const calculatedFontSize = useMemo(() => {
+    if (project.fontSize) return project.fontSize;
+    if (project.title.length > 35) return 0.32;
+    if (project.title.length > 20) return 0.38;
+    return 0.44;
+  }, [project.fontSize, project.title]);
+
   useEffect(() => {
     if (!projectRef.current) return;
     hoverAnimRef.current?.kill();
@@ -129,8 +136,9 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, da
           position={[-1.9, -0.8, 0.101]}
           anchorX="left"
           anchorY="bottom"
-          maxWidth={4}
-          fontSize={0.8}>
+          maxWidth={3.8}
+          lineHeight={1.15}
+          fontSize={calculatedFontSize}>
           {project.title}
         </Text>
         <group position={[-1.25, 1.4, 0.01]}>

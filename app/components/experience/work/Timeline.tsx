@@ -30,11 +30,24 @@ const TimelinePoint = ({ point, diff }: { point: WorkTimelinePoint, diff: number
     fillOpacity: 2 - 2 * diff,
   }), [textAlign, diff]);
 
+  const calculatedTitleFontSize = useMemo(() => {
+    if (point.fontSize) return point.fontSize;
+    if (point.title.length > 25) return 0.42;
+    if (point.title.length > 15) return 0.48;
+    return 0.58;
+  }, [point.fontSize, point.title]);
+
+  const calculatedSubtitleFontSize = useMemo(() => {
+    if (point.subtitleFontSize) return point.subtitleFontSize;
+    if ((point.subtitle?.length || 0) > 30) return 0.18;
+    return 0.22;
+  }, [point.subtitleFontSize, point.subtitle]);
+
   const titleProps = useMemo(() => ({
     ...textProps,
     font: "./soria-font.ttf",
-    fontSize: 0.6,
-    maxWidth: 3,
+    maxWidth: 3.5,
+    lineHeight: 1.15,
   }), [textProps]);
 
   return (
@@ -48,11 +61,21 @@ const TimelinePoint = ({ point, diff }: { point: WorkTimelinePoint, diff: number
           <Text {...textProps} fontSize={0.3} position={[-diff / 2, 0, 0]}>
             {point.year}
           </Text>
-          <group position={[0, -0.5, 0]}>
-            <Text {...titleProps} fontSize={0.6} maxWidth={3} position={[0, -diff / 2, 0]}>
+          <group position={[0, -0.45, 0]}>
+            <Text
+              {...titleProps}
+              fontSize={calculatedTitleFontSize}
+              maxWidth={3.5}
+              position={[0, -diff / 2, 0]}
+            >
               {point.title}
             </Text>
-            <Text {...textProps} fontSize={0.2} position={[0, -0.4 - diff, 0]}>
+            <Text
+              {...textProps}
+              fontSize={calculatedSubtitleFontSize}
+              maxWidth={3.5}
+              position={[0, -0.45 - diff, 0]}
+            >
               {point.subtitle}
             </Text>
           </group>
