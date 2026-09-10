@@ -14,7 +14,7 @@ const vercettiFont = localFont({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com/'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://saurya.me/'),
   title: "Saurya Janbandhu | Systems Engineer",
   description: "Systems engineer focused on enterprise cloud resilience, zero-trust identity, and endpoint management.",
   keywords: "Saurya Janbandhu, Systems Engineer, Microsoft Intune, Microsoft Entra ID, Azure, Zero Trust, Endpoint Management, Cloud Security",
@@ -63,7 +63,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="overscroll-y-none">
+    <html lang="en" className="overscroll-y-none" suppressHydrationWarning>
       <body
         className={`${soriaFont.variable} ${vercettiFont.variable} font-sans antialiased`}
       >
