@@ -88,3 +88,128 @@ body {
 .close:after {
   transform: rotate(-45deg);
 }
+
+.certificate-inspector-shell {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 2rem;
+  background: linear-gradient(180deg, rgba(18, 35, 50, 0.04), rgba(18, 35, 50, 0.38));
+  pointer-events: none;
+  font-family: var(--font-vercetti), Arial, sans-serif;
+}
+
+.certificate-inspector-card {
+  position: relative;
+  width: min(100%, 440px);
+  padding: 2rem;
+  color: #17232d;
+  background: rgba(240, 244, 243, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: 0 24px 80px rgba(11, 27, 40, 0.34);
+  backdrop-filter: blur(18px);
+  pointer-events: auto;
+  user-select: text;
+}
+
+.certificate-inspector-close {
+  position: absolute;
+  top: 0.8rem;
+  right: 1rem;
+  padding: 0;
+  border: 0;
+  color: #17232d;
+  background: transparent;
+  font: 1.6rem/1 var(--font-vercetti), sans-serif;
+  cursor: pointer;
+}
+
+.certificate-inspector-kicker {
+  margin: 0 2rem 1.1rem 0;
+  color: #557995;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+}
+
+.certificate-inspector-card h2 {
+  margin: 0;
+  max-width: 18ch;
+  font: 1.65rem/1.08 var(--font-soria), Georgia, serif;
+  font-weight: 400;
+}
+
+.certificate-inspector-issuer {
+  margin: 0.7rem 0 1.6rem;
+  color: #63727c;
+  font-size: 0.9rem;
+}
+
+.certificate-inspector-meta {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  padding: 0.9rem 0;
+  border-top: 1px solid rgba(23, 35, 45, 0.18);
+  border-bottom: 1px solid rgba(23, 35, 45, 0.18);
+  font-size: 0.78rem;
+}
+
+.certificate-inspector-meta span {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.certificate-inspector-meta small {
+  color: #6b879b;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+}
+
+.certificate-inspector-description {
+  margin: 1.2rem 0;
+  color: #44535e;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.certificate-inspector-skills {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.4rem;
+}
+
+.certificate-inspector-skills span {
+  padding: 0.35rem 0.55rem;
+  color: #557995;
+  border: 1px solid rgba(85, 121, 149, 0.35);
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+}
+
+.certificate-inspector-link {
+  display: inline-block;
+  color: #17232d;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+
+.certificate-inspector-link-muted {
+  color: #7d8a91;
+  border-bottom-style: dashed;
+}
+
+@media screen and (max-width: 768px) {
+  .certificate-inspector-shell {
+    align-items: flex-end;
+    padding: 1rem;
+  }
+
+  .certificate-inspector-card {
+    padding: 1.4rem;
+  }
+}
