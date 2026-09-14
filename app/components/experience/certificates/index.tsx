@@ -7,6 +7,10 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { CompleteShelfLandingPage } from './CompleteShelfLandingPage';
 import { SAINT_JEROME_WALLPAPER } from './artwork';
+import {
+  CERTIFICATE_ENTER_DURATION_MS,
+  CERTIFICATE_EXIT_DURATION_MS,
+} from './motion';
 
 function CertificateCoverArt({ active, isMobile }: { active: boolean; isMobile: boolean }) {
   const imageMaterial = useRef<THREE.MeshBasicMaterial>(null);
@@ -76,25 +80,32 @@ export default function Certificates() {
 
 export function CertificateOverlay() {
   const active = usePortalStore(state => state.activePortalId === 'certificates');
-  const [mounted, setMounted] = useState(active);
+  const [state, setState] = useState<'idle' | 'entering' | 'active' | 'exiting'>(
+    active ? 'entering' : 'idle'
+  );
 
   useEffect(() => {
-    if (active) {
-      if (mounted) return;
-      const timeout = window.setTimeout(() => setMounted(true), 0);
-      return () => window.clearTimeout(timeout);
-    }
+    const beginTimeout = window.setTimeout(() => {
+      setState(active ? 'entering' : 'exiting');
+    }, 0);
+    const finishTimeout = window.setTimeout(
+      () => setState(active ? 'active' : 'idle'),
+      active
+        ? CERTIFICATE_ENTER_DURATION_MS
+        : CERTIFICATE_EXIT_DURATION_MS
+    );
 
-    if (!mounted) return;
-    const timeout = window.setTimeout(() => setMounted(false), 1100);
-    return () => window.clearTimeout(timeout);
-  }, [active, mounted]);
-
-  if (!mounted) return null;
+    return () => {
+      window.clearTimeout(beginTimeout);
+      window.clearTimeout(finishTimeout);
+    };
+  }, [active]);
 
   return (
     <CompleteShelfLandingPage
-      isClosing={!active}
+      state={state}
+      enterDurationMs={CERTIFICATE_ENTER_DURATION_MS}
+      exitDurationMs={CERTIFICATE_EXIT_DURATION_MS}
       headingFont="iowan-old-style"
       bodyFont="inter"
       headingWeight="400"

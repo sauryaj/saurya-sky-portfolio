@@ -6,6 +6,10 @@ import gsap from "gsap";
 import { useRef } from 'react';
 import { isMobile } from 'react-device-detect';
 import * as THREE from 'three';
+import {
+  CERTIFICATE_ENTER_DURATION_SECONDS,
+  CERTIFICATE_EXIT_DURATION_SECONDS,
+} from './certificates/motion';
 
 
 interface GridTileProps {
@@ -39,7 +43,9 @@ const GridTile = (props: GridTileProps) => {
   const portalInto = (e: React.MouseEvent) => {
     if (isActive || activePortalId) return;
     e.stopPropagation();
-    const portalDuration = id === 'certificates' ? 1.15 : 0.85;
+    const portalDuration = id === 'certificates'
+      ? CERTIFICATE_ENTER_DURATION_SECONDS
+      : 0.85;
     setActivePortal(id);
     document.body.style.cursor = 'auto';
     const div = document.createElement('button');
@@ -61,38 +67,41 @@ const GridTile = (props: GridTileProps) => {
         transform: 'rotateX(0deg)',
         scale: 1,
         duration: portalDuration,
+        ease: id === 'certificates' ? 'power3.inOut' : 'power2.out',
       })
     }
     document.body.addEventListener('keydown', handleEscape);
     gsap.to(portalRef.current, {
       blend: 1,
       duration: portalDuration,
-      ease: 'power2.inOut',
+      ease: id === 'certificates' ? 'power3.inOut' : 'power2.inOut',
     });
   };
 
   const exitPortal = (force = false) => {
     if (!force && !activePortalId) return;
-    const portalDuration = id === 'certificates' ? 1.15 : 1.1;
+    const portalDuration = id === 'certificates'
+      ? CERTIFICATE_EXIT_DURATION_SECONDS
+      : 1.1;
     setActivePortal(null)
 
     gsap.to(camera.position, {
       x: 0,
       duration: portalDuration,
-      ease: 'power2.inOut',
+      ease: id === 'certificates' ? 'power3.inOut' : 'power2.inOut',
     });
 
     gsap.to(camera.rotation, {
       x: -Math.PI / 2,
       y: 0,
       duration: portalDuration,
-      ease: 'power2.inOut',
+      ease: id === 'certificates' ? 'power3.inOut' : 'power2.inOut',
     });
 
     gsap.to(portalRef.current, {
       blend: 0,
       duration: portalDuration,
-      ease: 'power2.inOut',
+      ease: id === 'certificates' ? 'power3.inOut' : 'power2.inOut',
     });
 
     // Remove the return control from the DOM after the portal closes.

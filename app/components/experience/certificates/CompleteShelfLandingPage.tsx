@@ -1,6 +1,6 @@
 'use client';
 
-import type { CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 
 import styles from './completeShelf.module.css';
 import { SAINT_JEROME_WALLPAPER } from './artwork';
@@ -48,7 +48,15 @@ export type CompleteShelfLandingPageProps = {
   headingSize?: number;
   bodySize?: number;
   headingLetterSpacing?: number;
-  isClosing?: boolean;
+  state?: 'idle' | 'entering' | 'active' | 'exiting';
+  enterDurationMs?: number;
+  exitDurationMs?: number;
+};
+
+type ShelfFrameStyle = CSSProperties & {
+  '--certificate-wallpaper': string;
+  '--certificate-enter-duration': string;
+  '--certificate-exit-duration': string;
 };
 
 /**
@@ -67,11 +75,57 @@ export function CompleteShelfLandingPage({
   headingSize = 60,
   bodySize = 12,
   headingLetterSpacing = -0.055,
-  isClosing = false,
+  state = 'active',
+  enterDurationMs = 1050,
+  exitDurationMs = 1050,
 }: CompleteShelfLandingPageProps) {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const receiveFrameMessage = (event: MessageEvent) => {
+      if (
+        event.source === iframeRef.current?.contentWindow &&
+        event.data?.type === 'certificate-archive:ready'
+      ) {
+        setReady(true);
+      }
+    };
+
+    window.addEventListener('message', receiveFrameMessage);
+    const readyFallback = window.setTimeout(() => setReady(true), 1500);
+    return () => {
+      window.removeEventListener('message', receiveFrameMessage);
+      window.clearTimeout(readyFallback);
+    };
+  }, []);
+
+  useEffect(() => {
+    const type = state === 'idle'
+      ? 'certificate-archive:pause'
+      : 'certificate-archive:resume';
+
+    if (state !== 'idle') {
+      iframeRef.current?.contentWindow?.postMessage({ type }, '*');
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      iframeRef.current?.contentWindow?.postMessage({ type }, '*');
+    }, 900);
+    return () => window.clearTimeout(timeout);
+  }, [ready, state]);
+
+  const frameStyle: ShelfFrameStyle = {
+    ...style,
+    '--certificate-wallpaper': `url("${SAINT_JEROME_WALLPAPER}")`,
+    '--certificate-enter-duration': `${enterDurationMs}ms`,
+    '--certificate-exit-duration': `${exitDurationMs}ms`,
+  };
+
   return (
     <div
-      className={`${styles.frame}${isClosing ? ` ${styles.closing}` : ''}${className ? ` ${className}` : ''}`}
+      className={`${styles.frame} ${styles[state]}${ready ? ` ${styles.ready}` : ''}${className ? ` ${className}` : ''}`}
       data-heading-font={headingFont}
       data-body-font={bodyFont}
       data-heading-weight={headingWeight}
@@ -80,14 +134,18 @@ export function CompleteShelfLandingPage({
       data-heading-size={headingSize}
       data-body-size={bodySize}
       data-heading-letter-spacing={headingLetterSpacing}
-      style={style}
+      style={frameStyle}
     >
       <iframe
+        ref={iframeRef}
         title="Certificate Archive — Five Verified Credentials"
         src="/landing-pages/certificate-shelf.html"
         loading="eager"
         sandbox="allow-downloads allow-forms allow-modals allow-popups allow-same-origin allow-scripts"
-        onLoad={(event) => applySaintJeromeWallpaper(event.currentTarget)}
+        onLoad={(event) => {
+          applySaintJeromeWallpaper(event.currentTarget);
+          setReady(true);
+        }}
       />
     </div>
   );

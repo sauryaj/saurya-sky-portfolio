@@ -1604,6 +1604,52 @@
       .credential-status { color: #c87046; font-weight: 600; }
       .credential-status[data-status="expired"] { color: #d98b78; }
     </style>
+
+    <style id="certificate-fluid-motion">
+      .detail-panel {
+        will-change: opacity, transform;
+      }
+
+      .mode-detail.is-opening .detail-panel {
+        animation: certificate-detail-in 560ms var(--ease-out) 360ms both;
+        pointer-events: none;
+      }
+
+      .mode-detail.is-closing .detail-panel {
+        opacity: 0;
+        transform: translateY(calc(-50% + 16px));
+        transition-delay: 0ms;
+        transition-duration: 260ms;
+        pointer-events: none;
+      }
+
+      .mode-detail.is-closing .masthead,
+      .mode-detail.is-closing .editorial-header {
+        opacity: 0.18;
+      }
+
+      @keyframes certificate-detail-in {
+        from {
+          opacity: 0;
+          transform: translateY(calc(-50% + 18px));
+        }
+        to {
+          opacity: 1;
+          transform: translateY(-50%);
+        }
+      }
+
+      @media (max-width: 819px) {
+        .mode-detail.is-closing .detail-panel {
+          transform: translateY(14px);
+        }
+
+        @keyframes certificate-detail-in {
+          from { opacity: 0; transform: translateY(18px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      }
+    </style>
 </head>
 <body>
   <main class="experience" id="experience">
@@ -2230,8 +2276,8 @@
     const PAGE_TURN_COMMIT_PROGRESS = 0.18;
     const COVER_OPEN_COMMIT_PROGRESS = 0.16;
     const COVER_CLOSE_COMMIT_PROGRESS = 0.2;
-    const DETAIL_TRANSITION_DURATION = 0.92;
-    const SHELF_TRANSITION_DURATION = 0.92;
+    const DETAIL_TRANSITION_DURATION = 0.88;
+    const SHELF_TRANSITION_DURATION = 1.04;
     let openingViewOffsetX = 0;
     let closingViewOffsetX = 0;
 
@@ -5272,6 +5318,7 @@
       detailPanel.inert = false;
       detailPanel.setAttribute("aria-hidden", "false");
       browseUi.inert = true;
+      experience.classList.remove("is-closing");
       experience.classList.add("mode-detail", "is-opening");
       pointerLabel.setAttribute("aria-hidden", "true");
       setHovered(-1);
@@ -5388,20 +5435,16 @@
       closingViewOffsetX = currentViewOffsetX;
       transitionCameraTarget.copy(closingCameraTarget);
       experience.classList.remove("is-opening");
+      experience.classList.add("is-closing");
       alignShelfToSelection();
-      closingBookPosition.set(
-        0,
-        shelfBoardTop + activeBook.base.height * 0.5 + 0.15,
-        0.37
-      );
+      closingBookPosition.copy(openingBookPosition);
+      closingBookQuaternion.copy(openingBookQuaternion);
+      closingBookScale.copy(openingBookScale);
       bookRigs.forEach((rig, index) => {
         if (rig !== activeBook && rig.root.parent === shelfStage) {
           snapRigToShelfSlot(rig, index);
         }
       });
-      experience.classList.remove("mode-detail");
-      detailPanel.setAttribute("aria-hidden", "true");
-      detailPanel.inert = true;
       liveRegion.textContent = `Returning ${activeBook.data.title} to the shelf.`;
       if (reducedMotion) {
         finishClosing();
@@ -5410,9 +5453,9 @@
     }
 
     function applyClosingPose(progress) {
-      const eased = smootherstep(clamp(progress, 0, 1));
+      const travelEased = smootherstep(clamp((progress - 0.16) / 0.84, 0, 1));
       const shelfReturnEased = smootherstep(
-        clamp((progress - 0.24) / 0.76, 0, 1)
+        clamp((progress - 0.22) / 0.78, 0, 1)
       );
       shelfStage.position.lerpVectors(
         closingShelfPosition,
@@ -5422,39 +5465,39 @@
       activeBook.root.position.lerpVectors(
         closingBookStartPosition,
         closingBookPosition,
-        eased
+        travelEased
       );
       activeBook.root.quaternion.slerpQuaternions(
         closingBookStartQuaternion,
         closingBookQuaternion,
-        eased
+        travelEased
       );
       activeBook.root.scale.lerpVectors(
         closingBookStartScale,
         closingBookScale,
-        eased
+        travelEased
       );
       activeBook.motion.position.lerpVectors(
         closingMotionPosition,
         restingMotionPosition,
-        eased
+        travelEased
       );
       activeBook.motion.quaternion.slerpQuaternions(
         closingMotionQuaternion,
         restingMotionQuaternion,
-        eased
+        travelEased
       );
       camera.position.lerpVectors(
         closingCameraPosition,
         shelfCameraPosition,
-        eased
+        travelEased
       );
       transitionCameraTarget.lerpVectors(
         closingCameraTarget,
         shelfCameraTarget,
-        eased
+        travelEased
       );
-      currentViewOffsetX = lerp(closingViewOffsetX, 0, eased);
+      currentViewOffsetX = lerp(closingViewOffsetX, 0, travelEased);
       applyDetailViewOffset();
       camera.lookAt(transitionCameraTarget);
     }
@@ -5466,6 +5509,9 @@
       snapRigToShelfSlot(activeBook, selectedIndex);
       activeBook.contactShadow.visible = true;
       controls.target.copy(shelfCameraTarget);
+      experience.classList.remove("mode-detail", "is-closing");
+      detailPanel.setAttribute("aria-hidden", "true");
+      detailPanel.inert = true;
       browseUi.inert = false;
       mode = "hero";
       transitionTime = 0;
@@ -5766,6 +5812,22 @@
       }
     }
 
+    function onParentPlaybackMessage(event) {
+      if (event.source !== window.parent) return;
+      const type = event.data?.type;
+      if (type === "certificate-archive:pause") {
+        suspended = true;
+        settlePageDrag(true);
+        resetDetailPress();
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = 0;
+      } else if (type === "certificate-archive:resume") {
+        suspended = false;
+        lastTime = performance.now();
+        requestFrame();
+      }
+    }
+
     function onWindowBlur() {
       settlePageDrag(true);
       resetDetailPress();
@@ -5826,6 +5888,7 @@
       window.removeEventListener("resize", resize);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("blur", onWindowBlur);
+      window.removeEventListener("message", onParentPlaybackMessage);
       document.removeEventListener("visibilitychange", onVisibilityChange);
       reducedMotionQuery.removeEventListener("change", onReducedMotionChange);
 
@@ -5946,6 +6009,7 @@
       window.addEventListener("resize", resize);
       window.addEventListener("keydown", onKeyDown);
       window.addEventListener("blur", onWindowBlur);
+      window.addEventListener("message", onParentPlaybackMessage);
       document.addEventListener("visibilitychange", onVisibilityChange);
       reducedMotionQuery.addEventListener("change", onReducedMotionChange);
 
@@ -5961,10 +6025,11 @@
       renderer.render(scene, camera);
       loading.hidden = true;
       experience.classList.add("webgl-ready");
+      window.parent.postMessage({ type: "certificate-archive:ready" }, "*");
       requestFrame();
 
       woodTexturePromise.then((ready) => {
-        if (!ready || suspended || !renderer) return;
+        if (!ready || !renderer) return;
         woodTextureReady = true;
         applyWoodTexture();
       });

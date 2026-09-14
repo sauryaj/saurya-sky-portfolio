@@ -3,15 +3,36 @@
   inset: 0;
   z-index: 9;
   overflow: hidden;
-  background: #080808;
-  pointer-events: auto;
-  will-change: opacity, transform;
-  animation: shelf-frame-in 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  background:
+    linear-gradient(rgba(30, 22, 18, 0.5), rgba(30, 22, 18, 0.58)),
+    var(--certificate-wallpaper) center / cover no-repeat,
+    #2d2119;
+  clip-path: inset(20% 18% 24% 61.5% round 4px);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.985);
+  transform-origin: 72% 48%;
+  will-change: clip-path, opacity, transform;
 }
 
-.closing {
+.idle {
+  opacity: 0;
+}
+
+.entering {
+  animation: shelf-frame-in var(--certificate-enter-duration) cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+
+.active {
+  clip-path: inset(0 round 0);
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.exiting {
   pointer-events: none;
-  animation: shelf-frame-out 1100ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: shelf-frame-out var(--certificate-exit-duration) cubic-bezier(0.76, 0, 0.24, 1) both;
 }
 
 .frame iframe {
@@ -19,15 +40,100 @@
   width: 100%;
   height: 100%;
   border: 0;
-  background: #080808;
+  background: transparent;
+  opacity: 0;
+  transform: scale(1.018);
+  transition: opacity 360ms ease, transform 800ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.ready.entering iframe {
+  animation: shelf-content-in 760ms cubic-bezier(0.22, 1, 0.36, 1) 170ms both;
+}
+
+.ready.active iframe {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.ready.exiting iframe {
+  opacity: 0.68;
+  transform: scale(1.008);
 }
 
 @keyframes shelf-frame-in {
-  from { opacity: 0; transform: scale(1.025); }
-  to { opacity: 1; transform: scale(1); }
+  0% {
+    clip-path: inset(20% 18% 24% 61.5% round 4px);
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  24% { opacity: 1; }
+  100% {
+    clip-path: inset(0 round 0);
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes shelf-frame-out {
-  from { opacity: 1; transform: scale(1); }
-  to { opacity: 0; transform: scale(1.012); }
+  0% {
+    clip-path: inset(0 round 0);
+    opacity: 1;
+    transform: scale(1);
+  }
+  74% { opacity: 1; }
+  100% {
+    clip-path: inset(20% 18% 24% 61.5% round 4px);
+    opacity: 0;
+    transform: scale(0.985);
+  }
+}
+
+@keyframes shelf-content-in {
+  from { opacity: 0; transform: scale(1.018); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (max-width: 1049px) {
+  .frame {
+    clip-path: inset(55% 10% 8% 10% round 16px);
+    transform-origin: 50% 76%;
+  }
+
+  @keyframes shelf-frame-in {
+    0% {
+      clip-path: inset(55% 10% 8% 10% round 16px);
+      opacity: 0;
+      transform: scale(0.985);
+    }
+    24% { opacity: 1; }
+    100% {
+      clip-path: inset(0 round 0);
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes shelf-frame-out {
+    0% {
+      clip-path: inset(0 round 0);
+      opacity: 1;
+      transform: scale(1);
+    }
+    74% { opacity: 1; }
+    100% {
+      clip-path: inset(55% 10% 8% 10% round 16px);
+      opacity: 0;
+      transform: scale(0.985);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entering,
+  .exiting,
+  .ready.entering iframe {
+    animation-duration: 1ms;
+    animation-delay: 0ms;
+  }
 }

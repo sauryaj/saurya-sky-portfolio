@@ -53,6 +53,54 @@ const certificateArtwork = `
     }
 `;
 
+const fluidMotionStyles = `
+    <style id="certificate-fluid-motion">
+      .detail-panel {
+        will-change: opacity, transform;
+      }
+
+      .mode-detail.is-opening .detail-panel {
+        animation: certificate-detail-in 560ms var(--ease-out) 360ms both;
+        pointer-events: none;
+      }
+
+      .mode-detail.is-closing .detail-panel {
+        opacity: 0;
+        transform: translateY(calc(-50% + 16px));
+        transition-delay: 0ms;
+        transition-duration: 260ms;
+        pointer-events: none;
+      }
+
+      .mode-detail.is-closing .masthead,
+      .mode-detail.is-closing .editorial-header {
+        opacity: 0.18;
+      }
+
+      @keyframes certificate-detail-in {
+        from {
+          opacity: 0;
+          transform: translateY(calc(-50% + 18px));
+        }
+        to {
+          opacity: 1;
+          transform: translateY(-50%);
+        }
+      }
+
+      @media (max-width: 819px) {
+        .mode-detail.is-closing .detail-panel {
+          transform: translateY(14px);
+        }
+
+        @keyframes certificate-detail-in {
+          from { opacity: 0; transform: translateY(18px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      }
+    </style>
+`;
+
 function readCertificateBooks(source) {
   const match = source.match(/export const CERTIFICATE_BOOKS[^=]*=\s*(\[[\s\S]*\]);\s*$/);
   if (!match) throw new Error('Could not read the certificate registry.');
@@ -68,11 +116,9 @@ function buildCertificateShelf(source, books) {
 
   const bookBlock = `    const BOOKS = ${JSON.stringify(books, null, 2)};\n\n`;
   let output = `${source.slice(0, booksStart)}${bookBlock}${source.slice(booksEnd)}`;
-  const activeCount = books.filter((book) => book.status === 'active').length;
-  const expiredCount = books.filter((book) => book.status === 'expired').length;
   output = output.replace(
     '</head>',
-    `<style id="certificate-archive-status">\n      .credential-status { color: #c87046; font-weight: 600; }\n      .credential-status[data-status="expired"] { color: #d98b78; }\n    </style>\n</head>`
+    `<style id="certificate-archive-status">\n      .credential-status { color: #c87046; font-weight: 600; }\n      .credential-status[data-status="expired"] { color: #d98b78; }\n    </style>\n${fluidMotionStyles}</head>`
   );
   output = output.replace('    const COVER_ATLAS_DATA =', `${certificateArtwork}\n    const COVER_ATLAS_DATA =`);
   output = output.replace(
@@ -104,7 +150,7 @@ function buildCertificateShelf(source, books) {
   output = output.replaceAll('Seven field guides for making', 'Five verified credentials');
   output = output.replace(
     '<span>Five verified credentials</span>',
-    `<span>${books.length} credentials · ${activeCount} active · ${expiredCount} expired</span>`
+    '<span>Security · cloud · systems</span>'
   );
   output = output.replaceAll('Edition 02 · 2026', 'Credential archive · 2026');
   output = output.replace('seven tactile field guides for contemporary creative tools', 'five verified credentials for security, cloud, and systems engineering');
@@ -120,6 +166,84 @@ function buildCertificateShelf(source, books) {
   output = output.replace(
     '      detailMotif.textContent = book.motif;',
     '      detailMotif.textContent = book.motif;\n      detailStatus.textContent = book.statusLabel;\n      detailStatus.dataset.status = book.status;'
+  );
+  output = output.replace(
+    '    const DETAIL_TRANSITION_DURATION = 0.92;\n    const SHELF_TRANSITION_DURATION = 0.92;',
+    '    const DETAIL_TRANSITION_DURATION = 0.88;\n    const SHELF_TRANSITION_DURATION = 1.04;'
+  );
+  output = output.replace(
+    '      experience.classList.add("mode-detail", "is-opening");',
+    '      experience.classList.remove("is-closing");\n      experience.classList.add("mode-detail", "is-opening");'
+  );
+  output = output.replace(
+    '      experience.classList.remove("is-opening");\n      alignShelfToSelection();\n      closingBookPosition.set(\n        0,\n        shelfBoardTop + activeBook.base.height * 0.5 + 0.15,\n        0.37\n      );',
+    '      experience.classList.remove("is-opening");\n      experience.classList.add("is-closing");\n      alignShelfToSelection();\n      closingBookPosition.copy(openingBookPosition);\n      closingBookQuaternion.copy(openingBookQuaternion);\n      closingBookScale.copy(openingBookScale);'
+  );
+  output = output.replace(
+    '      experience.classList.remove("mode-detail");\n      detailPanel.setAttribute("aria-hidden", "true");\n      detailPanel.inert = true;\n      liveRegion.textContent = `Returning ${activeBook.data.title} to the shelf.`;',
+    '      liveRegion.textContent = `Returning ${activeBook.data.title} to the shelf.`;'
+  );
+  output = output.replace(
+    '      const eased = smootherstep(clamp(progress, 0, 1));\n      const shelfReturnEased = smootherstep(\n        clamp((progress - 0.24) / 0.76, 0, 1)\n      );',
+    '      const travelEased = smootherstep(clamp((progress - 0.16) / 0.84, 0, 1));\n      const shelfReturnEased = smootherstep(\n        clamp((progress - 0.22) / 0.78, 0, 1)\n      );'
+  );
+  [
+    ['closingBookStartPosition', 'closingBookPosition'],
+    ['closingBookStartQuaternion', 'closingBookQuaternion'],
+    ['closingBookStartScale', 'closingBookScale'],
+    ['closingMotionPosition', 'restingMotionPosition'],
+    ['closingMotionQuaternion', 'restingMotionQuaternion'],
+    ['closingCameraPosition', 'shelfCameraPosition'],
+    ['closingCameraTarget', 'shelfCameraTarget'],
+  ].forEach(([from, to]) => {
+    output = output.replace(
+      `        ${from},\n        ${to},\n        eased\n      );`,
+      `        ${from},\n        ${to},\n        travelEased\n      );`
+    );
+  });
+  output = output.replace(
+    '      currentViewOffsetX = lerp(closingViewOffsetX, 0, eased);',
+    '      currentViewOffsetX = lerp(closingViewOffsetX, 0, travelEased);'
+  );
+  output = output.replace(
+    '      controls.target.copy(shelfCameraTarget);\n      browseUi.inert = false;',
+    '      controls.target.copy(shelfCameraTarget);\n      experience.classList.remove("mode-detail", "is-closing");\n      detailPanel.setAttribute("aria-hidden", "true");\n      detailPanel.inert = true;\n      browseUi.inert = false;'
+  );
+  output = output.replace(
+    '    function onWindowBlur() {',
+    `    function onParentPlaybackMessage(event) {
+      if (event.source !== window.parent) return;
+      const type = event.data?.type;
+      if (type === "certificate-archive:pause") {
+        suspended = true;
+        settlePageDrag(true);
+        resetDetailPress();
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = 0;
+      } else if (type === "certificate-archive:resume") {
+        suspended = false;
+        lastTime = performance.now();
+        requestFrame();
+      }
+    }
+
+    function onWindowBlur() {`
+  );
+  output = output.replace(
+    '      window.removeEventListener("blur", onWindowBlur);',
+    '      window.removeEventListener("blur", onWindowBlur);\n      window.removeEventListener("message", onParentPlaybackMessage);'
+  );
+  output = output.replace(
+    '      window.addEventListener("blur", onWindowBlur);',
+    '      window.addEventListener("blur", onWindowBlur);\n      window.addEventListener("message", onParentPlaybackMessage);'
+  );
+  output = output.replace(
+    '      experience.classList.add("webgl-ready");\n      requestFrame();',
+    '      experience.classList.add("webgl-ready");\n      window.parent.postMessage({ type: "certificate-archive:ready" }, "*");\n      requestFrame();'
+  );
+  output = output.replace(
+    '        if (!ready || suspended || !renderer) return;',
+    '        if (!ready || !renderer) return;'
   );
   return output;
 }

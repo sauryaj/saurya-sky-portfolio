@@ -1,2 +1,1 @@
-export const SAINT_JEROME_WALLPAPER = 'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b1/Antonello_da_Messina_-_St_Jerome_in_his_study_-_National_Gallery_London.jpg/1920px-Antonello_da_Messina_-_St_Jerome_in_his_study_-_National_Gallery_London.jpg';
-
+export const SAINT_JEROME_WALLPAPER = 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Antonello_da_Messina_-_St_Jerome_in_his_study_-_National_Gallery_London.jpg/1920px-Antonello_da_Messina_-_St_Jerome_in_his_study_-_National_Gallery_London.jpg';
