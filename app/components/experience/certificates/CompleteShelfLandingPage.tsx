@@ -18,7 +18,6 @@ function applySaintJeromeWallpaper(frame: HTMLIFrameElement) {
       background-image: linear-gradient(rgba(30, 22, 18, 0.54), rgba(30, 22, 18, 0.54)), url("${SAINT_JEROME_WALLPAPER}") !important;
       background-size: cover !important;
       background-position: center center !important;
-      background-attachment: fixed !important;
     }
     .experience::before {
       position: absolute;
@@ -51,6 +50,7 @@ export type CompleteShelfLandingPageProps = {
   state?: 'idle' | 'entering' | 'active' | 'exiting';
   enterDurationMs?: number;
   exitDurationMs?: number;
+  onRequestClose?: () => void;
 };
 
 type ShelfFrameStyle = CSSProperties & {
@@ -78,6 +78,7 @@ export function CompleteShelfLandingPage({
   state = 'active',
   enterDurationMs = 1050,
   exitDurationMs = 1050,
+  onRequestClose,
 }: CompleteShelfLandingPageProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [ready, setReady] = useState(false);
@@ -101,9 +102,33 @@ export function CompleteShelfLandingPage({
   }, []);
 
   useEffect(() => {
+    const frameWindow = iframeRef.current?.contentWindow;
+    const frameDocument = iframeRef.current?.contentDocument;
+    if (!ready || !frameWindow || !frameDocument || !onRequestClose) return;
+
+    const handleFrameEscape = (event: KeyboardEvent) => {
+      const detailIsOpen = frameDocument
+        .querySelector('.experience')
+        ?.classList.contains('mode-detail');
+      if (event.key === 'Escape' && !detailIsOpen) onRequestClose();
+    };
+
+    frameWindow.addEventListener('keydown', handleFrameEscape);
+    return () => frameWindow.removeEventListener('keydown', handleFrameEscape);
+  }, [onRequestClose, ready]);
+
+  useEffect(() => {
     const type = state === 'idle'
       ? 'certificate-archive:pause'
       : 'certificate-archive:resume';
+
+    if (state !== 'active') {
+      const focusedFrameElement = iframeRef.current?.contentDocument?.activeElement;
+      if (focusedFrameElement && 'blur' in focusedFrameElement) {
+        (focusedFrameElement as HTMLElement).blur();
+      }
+      iframeRef.current?.blur();
+    }
 
     if (state !== 'idle') {
       iframeRef.current?.contentWindow?.postMessage({ type }, '*');
@@ -134,6 +159,8 @@ export function CompleteShelfLandingPage({
       data-heading-size={headingSize}
       data-body-size={bodySize}
       data-heading-letter-spacing={headingLetterSpacing}
+      aria-hidden={state !== 'active'}
+      inert={state !== 'active'}
       style={frameStyle}
     >
       <iframe
@@ -141,7 +168,10 @@ export function CompleteShelfLandingPage({
         title="Certificate Archive — Five Verified Credentials"
         src="/landing-pages/certificate-shelf.html"
         loading="eager"
-        sandbox="allow-downloads allow-forms allow-modals allow-popups allow-same-origin allow-scripts"
+        sandbox="allow-same-origin allow-scripts"
+        aria-hidden={state !== 'active'}
+        inert={state !== 'active'}
+        tabIndex={state === 'active' ? 0 : -1}
         onLoad={(event) => {
           applySaintJeromeWallpaper(event.currentTarget);
           setReady(true);

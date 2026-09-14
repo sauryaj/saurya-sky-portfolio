@@ -1,47 +1,48 @@
-import { ScrollControls } from "@react-three/drei";
+import { ScrollControls, useScroll } from "@react-three/drei";
 import { usePortalStore, useScrollStore } from "@stores";
 import { useEffect } from "react";
 import * as THREE from "three";
 import { Memory } from "../../models/Memory";
 import Timeline from "./Timeline";
 
-const Work = () => {
-  const isActive = usePortalStore((state) => state.activePortalId === 'work');
-  const { scrollProgress, setScrollProgress } = useScrollStore();
+function WorkScrollBridge({ active, outerScroll }: { active: boolean; outerScroll: HTMLElement }) {
+  const innerScroll = useScroll();
+  const setScrollProgress = useScrollStore((state) => state.setScrollProgress);
 
-  const handleScroll = (event: Event) => {
-    const target = event.target as HTMLElement;
-    const scrollTop = target.scrollTop;
-    const scrollHeight = target.scrollHeight - target.clientHeight;
-    const progress = Math.min(Math.max(scrollTop / scrollHeight, 0), 1);
-    setScrollProgress(progress);
-  }
-
-  // Hack: If the portal is active, add the scroll event listener to the scroll
-  // wrapper div. If the portal is not active, remove the scroll event listener.
-  // ScrollControls doesn't work out of the box, so we have to manually handle
-  // the scroll event.
   useEffect(() => {
-    if (isActive) {
-      const scrollWrapper = document.querySelector('div[style*="z-index: -1"]') as HTMLElement;
-      const originalScrollWrapper = document.querySelector('div[style*="z-index: 1"]') as HTMLElement;
-      setScrollProgress(0);
-      scrollWrapper.addEventListener('scroll', handleScroll)
-      scrollWrapper.style.zIndex = '1';
-      originalScrollWrapper.style.zIndex = '-1';
-    } else {
-      const scrollWrapper = document.querySelector('div[style*="z-index: 1"]') as HTMLElement;
-      const originalScrollWrapper = document.querySelector('div[style*="z-index: -1"]') as HTMLElement;
+    const innerElement = innerScroll.el;
+    const handleScroll = () => {
+      const scrollHeight = innerElement.scrollHeight - innerElement.clientHeight;
+      const progress = scrollHeight > 0 ? innerElement.scrollTop / scrollHeight : 0;
+      setScrollProgress(Math.min(Math.max(progress, 0), 1));
+    };
 
-      if (scrollWrapper) {
-        scrollWrapper.scrollTo({ top: 0, behavior: 'smooth' });
-        setScrollProgress(0);
-        scrollWrapper.removeEventListener('scroll', handleScroll);
-        scrollWrapper.style.zIndex = '-1';
-        originalScrollWrapper.style.zIndex = '1';
-      }
+    if (active) {
+      innerElement.scrollTop = 0;
+      innerElement.style.zIndex = '1';
+      outerScroll.style.zIndex = '-1';
+      setScrollProgress(0);
+      innerElement.addEventListener('scroll', handleScroll, { passive: true });
     }
-  }, [isActive]);
+
+    return () => {
+      innerElement.removeEventListener('scroll', handleScroll);
+      innerElement.scrollTop = 0;
+      innerElement.style.zIndex = '-1';
+      outerScroll.style.zIndex = '1';
+      setScrollProgress(0);
+    };
+  }, [active, innerScroll.el, outerScroll, setScrollProgress]);
+
+  return null;
+}
+
+const Work = () => {
+  const isActive = usePortalStore((state) => (
+    state.activePortalId === 'work' && state.phase !== 'exiting'
+  ));
+  const scrollProgress = useScrollStore((state) => state.scrollProgress);
+  const outerScroll = useScroll();
 
   return (
     <group>
@@ -50,6 +51,7 @@ const Work = () => {
         <shadowMaterial opacity={0.1} />
       </mesh>
       <ScrollControls style={{ zIndex: -1}} pages={2} maxSpeed={0.4}>
+        <WorkScrollBridge active={isActive} outerScroll={outerScroll.el} />
         <Memory scale={new THREE.Vector3(5, 5, 5)} position={new THREE.Vector3(0, -6, 1)}/>
         <Timeline progress={isActive ? scrollProgress : 0} />
       </ScrollControls>

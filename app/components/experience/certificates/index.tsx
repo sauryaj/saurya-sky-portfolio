@@ -1,16 +1,12 @@
-import { useScroll, useTexture } from '@react-three/drei';
+import { useTexture } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
-import { usePortalStore } from '@stores';
-import { useEffect, useRef, useState } from 'react';
+import { usePortalStore, useScrollStore } from '@stores';
+import { useRef } from 'react';
 import * as THREE from 'three';
 
-import gsap from 'gsap';
 import { CompleteShelfLandingPage } from './CompleteShelfLandingPage';
 import { SAINT_JEROME_WALLPAPER } from './artwork';
-import {
-  CERTIFICATE_ENTER_DURATION_MS,
-  CERTIFICATE_EXIT_DURATION_MS,
-} from './motion';
+import { PORTAL_MOTION } from '../portalMotion';
 
 function CertificateCoverArt({ active, isMobile }: { active: boolean; isMobile: boolean }) {
   const imageMaterial = useRef<THREE.MeshBasicMaterial>(null);
@@ -42,35 +38,10 @@ function CertificateCoverArt({ active, isMobile }: { active: boolean; isMobile: 
 useTexture.preload(SAINT_JEROME_WALLPAPER);
 
 export default function Certificates() {
-  const active = usePortalStore(state => state.activePortalId === 'certificates');
-  const { camera } = useThree();
+  const active = usePortalStore(state => (
+    state.activePortalId === 'certificates' && state.phase !== 'exiting'
+  ));
   const isMobile = useThree(state => state.size.width < 1050);
-  const scroll = useScroll();
-
-  useEffect(() => {
-    if (!active) return;
-    const previous = scroll.el.style.overflow;
-    scroll.el.style.overflow = 'hidden';
-    const animation = gsap.to(camera.position, {
-      x: isMobile ? 0 : 2.8,
-      y: -37,
-      z: isMobile ? 13 : 11.5,
-      duration: 1.2,
-      ease: 'power2.inOut',
-    });
-    const rotation = gsap.to(camera.rotation, {
-      x: -Math.PI / 2,
-      y: 0,
-      z: 0,
-      duration: 1.2,
-      ease: 'power2.inOut',
-    });
-    return () => {
-      animation.kill();
-      rotation.kill();
-      scroll.el.style.overflow = previous;
-    };
-  }, [active, camera, scroll.el, isMobile]);
 
   return <group>
     <color attach="background" args={["#b5aa8e"]} />
@@ -79,33 +50,22 @@ export default function Certificates() {
 }
 
 export function CertificateOverlay() {
-  const active = usePortalStore(state => state.activePortalId === 'certificates');
-  const [state, setState] = useState<'idle' | 'entering' | 'active' | 'exiting'>(
-    active ? 'entering' : 'idle'
-  );
+  const activePortalId = usePortalStore(state => state.activePortalId);
+  const portalPhase = usePortalStore(state => state.phase);
+  const nearExperience = useScrollStore(state => state.scrollProgress > 0.55);
+  const closePortal = usePortalStore(state => state.closePortal);
+  const shouldPrepare = nearExperience || activePortalId === 'certificates';
 
-  useEffect(() => {
-    const beginTimeout = window.setTimeout(() => {
-      setState(active ? 'entering' : 'exiting');
-    }, 0);
-    const finishTimeout = window.setTimeout(
-      () => setState(active ? 'active' : 'idle'),
-      active
-        ? CERTIFICATE_ENTER_DURATION_MS
-        : CERTIFICATE_EXIT_DURATION_MS
-    );
+  if (!shouldPrepare) return null;
 
-    return () => {
-      window.clearTimeout(beginTimeout);
-      window.clearTimeout(finishTimeout);
-    };
-  }, [active]);
+  const state = activePortalId === 'certificates' ? portalPhase : 'idle';
+  const motion = PORTAL_MOTION.certificates;
 
   return (
     <CompleteShelfLandingPage
       state={state}
-      enterDurationMs={CERTIFICATE_ENTER_DURATION_MS}
-      exitDurationMs={CERTIFICATE_EXIT_DURATION_MS}
+      enterDurationMs={motion.enter * 1000}
+      exitDurationMs={motion.exit * 1000}
       headingFont="iowan-old-style"
       bodyFont="inter"
       headingWeight="400"
@@ -114,6 +74,7 @@ export function CertificateOverlay() {
       headingSize={60}
       bodySize={12}
       headingLetterSpacing={-0.055}
+      onRequestClose={closePortal}
     />
   );
 }

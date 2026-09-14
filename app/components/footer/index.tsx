@@ -34,6 +34,7 @@ const FooterLinkItem = ({ link }: { link: FooterLink }) => {
   };
 
   useEffect(() => {
+    let created = false;
     if (!document.getElementById(`footer-link-${link.name}`)) {
       const hoverDiv = document.createElement('div');
       hoverDiv.id = `footer-link-${link.name}`;
@@ -46,8 +47,13 @@ const FooterLinkItem = ({ link }: { link: FooterLink }) => {
       hoverDiv.style.fontSize = '0.8rem';
       hoverDiv.style.pointerEvents = 'none';
       document.body.appendChild(hoverDiv);
+      created = true;
     }
-  }, [])
+
+    return () => {
+      if (created) document.getElementById(`footer-link-${link.name}`)?.remove();
+    };
+  }, [link.hoverText, link.name])
 
   useEffect(() => {
     if (isMobile) return

@@ -164,9 +164,13 @@ function buildCertificateShelf(source, books) {
     '    const detailMotif = document.querySelector("#detail-motif");\n    const detailStatus = document.querySelector("#detail-status");'
   );
   output = output.replace(
-    '      detailMotif.textContent = book.motif;',
-    '      detailMotif.textContent = book.motif;\n      detailStatus.textContent = book.statusLabel;\n      detailStatus.dataset.status = book.status;'
+    '      detailBinding.textContent = book.binding;\n      detailFormat.textContent = book.format;\n      detailTheme.textContent = book.theme;\n      detailMotif.textContent = book.motif;',
+    '      detailBinding.textContent = book.issuer;\n      detailFormat.textContent = book.issued;\n      detailTheme.textContent = book.validity;\n      detailMotif.textContent = book.credentialId || "Available from issuer";\n      detailStatus.textContent = book.statusLabel;\n      detailStatus.dataset.status = book.status;'
   );
+  output = output.replace('<dt>Binding</dt>', '<dt>Issuer</dt>');
+  output = output.replace('<dt>Format</dt>', '<dt>Issued</dt>');
+  output = output.replace('<dt>Theme</dt>', '<dt>Validity</dt>');
+  output = output.replace('<dt>Motif</dt>', '<dt>Credential ID</dt>');
   output = output.replace(
     '    const DETAIL_TRANSITION_DURATION = 0.92;\n    const SHELF_TRANSITION_DURATION = 0.92;',
     '    const DETAIL_TRANSITION_DURATION = 0.88;\n    const SHELF_TRANSITION_DURATION = 1.04;'

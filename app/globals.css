@@ -89,3 +89,38 @@ body {
   transform: rotate(-45deg);
 }
 .close-certificates:before, .close-certificates:after { background-color: #f3eee2; }
+
+.portal-close {
+  position: fixed;
+  z-index: 10;
+  border: 0;
+  background: transparent;
+  animation: portal-close-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.portal-close[data-phase="exiting"] {
+  pointer-events: none;
+  animation: portal-close-out 360ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.portal-close:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 8px;
+  opacity: 1;
+}
+
+@keyframes portal-close-in {
+  from { opacity: 0; transform: rotate(-90deg) scale(0.6); }
+  to { opacity: 0.72; transform: rotate(0) scale(1); }
+}
+
+@keyframes portal-close-out {
+  from { opacity: 0.72; transform: rotate(0) scale(1); }
+  to { opacity: 0; transform: rotate(90deg) scale(0.6); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-close {
+    animation-duration: 1ms;
+  }
+}

@@ -9,11 +9,10 @@ import { isMobile } from "react-device-detect";
 
 import { useThemeStore } from "@stores";
 
-import Preloader from "./Preloader";
 import ProgressLoader from "./ProgressLoader";
 import { ScrollHint } from "./ScrollHint";
 import ThemeSwitcher from "./ThemeSwitcher";
-// import {Perf} from "r3f-perf"
+import { PortalTransitionController } from "../experience/PortalTransitionController";
 
 const CanvasLoader = (props: { children: React.ReactNode }) => {
   const ref= useRef<HTMLDivElement>(null);
@@ -70,13 +69,12 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
           style={canvasStyle}
           ref={canvasRef}
           dpr={[1, 2]}>
-          {/* <Perf/> */}
           <Suspense fallback={null}>
             <ambientLight intensity={0.5} />
 
             <ScrollControls pages={4} damping={0.4} maxSpeed={1} distance={1} style={{ zIndex: 1 }}>
               {props.children}
-              <Preloader />
+              <PortalTransitionController />
             </ScrollControls>
 
             <Preload all />

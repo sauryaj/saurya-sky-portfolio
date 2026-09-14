@@ -1,19 +1,16 @@
 
 import { Edges, MeshPortalMaterial, Text, TextProps } from '@react-three/drei';
-import { useThree } from '@react-three/fiber';
-import { usePortalStore } from '@stores';
+import { usePortalStore, type PortalId } from '@stores';
 import gsap from "gsap";
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { isMobile } from 'react-device-detect';
 import * as THREE from 'three';
-import {
-  CERTIFICATE_ENTER_DURATION_SECONDS,
-  CERTIFICATE_EXIT_DURATION_SECONDS,
-} from './certificates/motion';
+
+import { getPortalDuration } from './portalMotion';
 
 
 interface GridTileProps {
-  id: string;
+  id: PortalId;
   title: string;
   textAlign: TextProps['textAlign'];
   children: React.ReactNode;
@@ -29,98 +26,31 @@ const GridTile = (props: GridTileProps) => {
   const hoverBoxRef = useRef<THREE.Mesh>(null);
   const portalRef = useRef(null);
   const { title, textAlign, children, color, position, id, size = [4, 4] } = props;
-  const { camera } = useThree();
-  const setActivePortal = usePortalStore((state) => state.setActivePortal);
+  const openPortal = usePortalStore((state) => state.openPortal);
   const isActive = usePortalStore((state) => state.activePortalId === id);
   const activePortalId = usePortalStore((state) => state.activePortalId);
+  const phase = usePortalStore((state) => state.phase);
+  const opening = isActive && phase !== 'exiting';
 
-  const handleEscape = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      exitPortal(true);
-    }
-  };
+  useEffect(() => {
+    const direction = opening ? 'enter' : 'exit';
+    const animation = gsap.to(portalRef.current, {
+      blend: opening ? 1 : 0,
+      duration: getPortalDuration(id, direction),
+      ease: id === 'certificates' ? 'power3.inOut' : 'power2.inOut',
+    });
+
+    return () => {
+      animation.kill();
+    };
+  }, [id, opening]);
 
   const portalInto = (e: React.MouseEvent) => {
     if (isActive || activePortalId) return;
     e.stopPropagation();
-    const portalDuration = id === 'certificates'
-      ? CERTIFICATE_ENTER_DURATION_SECONDS
-      : 0.85;
-    setActivePortal(id);
+    openPortal(id);
     document.body.style.cursor = 'auto';
-    const div = document.createElement('button');
-
-    div.className = `fixed close${id === 'certificates' ? ' close-certificates' : ''}`;
-    div.setAttribute('aria-label', 'Return to experience');
-    div.style.transform = 'rotateX(90deg)';
-    div.onclick = () => exitPortal(true);
-
-    if (!document.querySelector('.close')) {
-      document.body.appendChild(div);
-
-      gsap.fromTo(div, {
-        scale: 0,
-        rotate: '-180deg',
-      },{
-        opacity: 1,
-        zIndex: 10,
-        transform: 'rotateX(0deg)',
-        scale: 1,
-        duration: portalDuration,
-        ease: id === 'certificates' ? 'power3.inOut' : 'power2.out',
-      })
-    }
-    document.body.addEventListener('keydown', handleEscape);
-    gsap.to(portalRef.current, {
-      blend: 1,
-      duration: portalDuration,
-      ease: id === 'certificates' ? 'power3.inOut' : 'power2.inOut',
-    });
   };
-
-  const exitPortal = (force = false) => {
-    if (!force && !activePortalId) return;
-    const portalDuration = id === 'certificates'
-      ? CERTIFICATE_EXIT_DURATION_SECONDS
-      : 1.1;
-    setActivePortal(null)
-
-    gsap.to(camera.position, {
-      x: 0,
-      duration: portalDuration,
-      ease: id === 'certificates' ? 'power3.inOut' : 'power2.inOut',
-    });
-
-    gsap.to(camera.rotation, {
-      x: -Math.PI / 2,
-      y: 0,
-      duration: portalDuration,
-      ease: id === 'certificates' ? 'power3.inOut' : 'power2.inOut',
-    });
-
-    gsap.to(portalRef.current, {
-      blend: 0,
-      duration: portalDuration,
-      ease: id === 'certificates' ? 'power3.inOut' : 'power2.inOut',
-    });
-
-    // Remove the return control from the DOM after the portal closes.
-    const closeButton = document.querySelector('.close');
-    if (!closeButton) {
-      document.body.removeEventListener('keydown', handleEscape);
-      return;
-    }
-    gsap.to(closeButton, {
-      scale: 0,
-      duration: 0.5,
-      onComplete: () => {
-        document.querySelectorAll('.close').forEach((el) => {
-          el.remove();
-        });
-      }
-    })
-    document.body.removeEventListener('keydown', handleEscape);
-  }
 
   const fontProps: Partial<TextProps> = {
     font: "./soria-font.ttf",

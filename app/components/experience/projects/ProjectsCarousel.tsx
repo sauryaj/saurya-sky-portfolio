@@ -7,7 +7,9 @@ import { usePortalStore } from "@stores";
 
 const ProjectsCarousel = () => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const isActive = usePortalStore((state) => state.activePortalId === "projects");
+  const isActive = usePortalStore((state) => (
+    state.activePortalId === "projects" && state.phase !== 'exiting'
+  ));
   const activeId = isActive ? selectedId : null;
 
   const onClick = (id: number) => {

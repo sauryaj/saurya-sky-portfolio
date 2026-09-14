@@ -22,7 +22,9 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, da
   const projectRef = useRef<THREE.Group>(null);
   const hoverAnimRef = useRef<gsap.core.Timeline | null>(null);
   const [desktopHovered, setDesktopHovered] = useState(false);
-  const isProjectSectionActive = usePortalStore((state) => state.activePortalId === "projects");
+  const isProjectSectionActive = usePortalStore((state) => (
+    state.activePortalId === "projects" && state.phase !== 'exiting'
+  ));
   const hovered = isMobile ? activeId === index : desktopHovered;
   const isTop = datePosition === 'top';
 

@@ -43,8 +43,7 @@ export const ScrollHint = () => {
   return (
     <div className="fixed w-full bottom-5 scroll-hint" style={{ opacity: 0 }}>
       <div className="flex items-center justify-center animate-pulse">
-        { showScrollHint }
-        <Image src={svgSrc} width={18} height={18} alt="night mode" loading="lazy" />
+        <Image src={svgSrc} width={18} height={18} alt="" loading="lazy" />
         <span className="text-white">{hintText}</span>
       </div>
     </div>

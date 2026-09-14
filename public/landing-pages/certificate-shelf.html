@@ -1721,19 +1721,19 @@
           <dd id="detail-status" class="credential-status"></dd>
         </div>
         <div>
-          <dt>Binding</dt>
+          <dt>Issuer</dt>
           <dd id="detail-binding">Evergreen cloth · antique brass foil</dd>
         </div>
         <div>
-          <dt>Format</dt>
+          <dt>Issued</dt>
           <dd id="detail-format">148 × 216 mm · imagined edition</dd>
         </div>
         <div>
-          <dt>Theme</dt>
+          <dt>Validity</dt>
           <dd id="detail-theme">Intent into implementation</dd>
         </div>
         <div>
-          <dt>Motif</dt>
+          <dt>Credential ID</dt>
           <dd id="detail-motif">Nested brackets</dd>
         </div>
       </dl>
@@ -4473,10 +4473,10 @@
       detailEyebrow.textContent = `Volume ${book.roman} · ${book.discipline}`;
       detailTitle.textContent = book.title;
       detailDeck.textContent = book.deck;
-      detailBinding.textContent = book.binding;
-      detailFormat.textContent = book.format;
-      detailTheme.textContent = book.theme;
-      detailMotif.textContent = book.motif;
+      detailBinding.textContent = book.issuer;
+      detailFormat.textContent = book.issued;
+      detailTheme.textContent = book.validity;
+      detailMotif.textContent = book.credentialId || "Available from issuer";
       detailStatus.textContent = book.statusLabel;
       detailStatus.dataset.status = book.status;
     }

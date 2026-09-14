@@ -1,5 +1,3 @@
-// import "react-crud-icons/dist/react-crud-icons.css";
-
 import { useGSAP } from "@gsap/react";
 import { usePortalStore, useThemeStore } from "@stores";
 import gsap from "gsap";
@@ -33,9 +31,9 @@ const ThemeSwitcher = () => {
   return (
     <div className={`fixed ${positionClass}`} ref={themeSwitcherRef} style={{ opacity: 0, zIndex: 2 }}>
       <div className="flex items-center justify-center gap-2">
-        <a className="hover:cursor-pointer" onClick={toggleTheme}>
+        <button type="button" className="hover:cursor-pointer" aria-label="Change color theme" onClick={toggleTheme}>
           <Image src="icons/night-mode.svg" width={24} height={24} alt="night mode" priority />
-        </a>
+        </button>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
-import dynamic from 'next/dynamic';
+'use client';
+
 import { useEffect, useState } from 'react';
 import { isMobile } from 'react-device-detect';
 
@@ -8,8 +9,8 @@ import { isMobile } from 'react-device-detect';
 const ProgressLoader = ({ progress }: { progress: number }) => {
   const strokeWidth = 3;
   const [windowSize, setWindowSize] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight,
+    width: 0,
+    height: 0,
   });
 
   // Effect to update dimensions on window resize
@@ -120,4 +121,4 @@ const ProgressLoader = ({ progress }: { progress: number }) => {
   );
 };
 
-export default dynamic(() => Promise.resolve(ProgressLoader), { ssr: false });
+export default ProgressLoader;

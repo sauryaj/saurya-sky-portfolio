@@ -96,35 +96,42 @@
 
 @media (max-width: 1049px) {
   .frame {
-    clip-path: inset(55% 10% 8% 10% round 16px);
+    clip-path: none;
+    border-radius: 18px;
+    transform: translateY(18%) scale(0.76);
     transform-origin: 50% 76%;
+  }
+
+  .active {
+    border-radius: 0;
+    transform: translateY(0) scale(1);
   }
 
   @keyframes shelf-frame-in {
     0% {
-      clip-path: inset(55% 10% 8% 10% round 16px);
       opacity: 0;
-      transform: scale(0.985);
+      border-radius: 18px;
+      transform: translateY(18%) scale(0.76);
     }
     24% { opacity: 1; }
     100% {
-      clip-path: inset(0 round 0);
       opacity: 1;
-      transform: scale(1);
+      border-radius: 0;
+      transform: translateY(0) scale(1);
     }
   }
 
   @keyframes shelf-frame-out {
     0% {
-      clip-path: inset(0 round 0);
       opacity: 1;
-      transform: scale(1);
+      border-radius: 0;
+      transform: translateY(0) scale(1);
     }
     74% { opacity: 1; }
     100% {
-      clip-path: inset(55% 10% 8% 10% round 16px);
       opacity: 0;
-      transform: scale(0.985);
+      border-radius: 18px;
+      transform: translateY(18%) scale(0.76);
     }
   }
 }
