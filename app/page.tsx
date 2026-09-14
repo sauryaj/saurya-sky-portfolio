@@ -2,12 +2,14 @@
 
 import CanvasLoader from "./components/common/CanvasLoader";
 import ScrollWrapper from "./components/common/ScrollWrapper";
+import { CertificateOverlay } from "./components/experience/certificates";
 import Experience from "./components/experience";
 import Footer from "./components/footer";
 import Hero from "./components/hero";
 
 const Home = () => {
   return (
+    <>
     <CanvasLoader>
       <ScrollWrapper>
         <Hero/>
@@ -15,6 +17,8 @@ const Home = () => {
         <Footer/>
       </ScrollWrapper>
     </CanvasLoader>
+    <CertificateOverlay />
+    </>
   );
 };
 export default Home;

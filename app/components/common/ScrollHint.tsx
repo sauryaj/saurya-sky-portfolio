@@ -17,7 +17,7 @@ export const ScrollHint = () => {
   } else if (portal === 'work') {
     hintText = 'SCROLL';
     showScrollHint = scrollProgress === 0;
-  } else {
+  } else if (portal === 'projects') {
     hintText = 'PAN';
     showScrollHint = true;
   }

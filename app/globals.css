@@ -88,3 +88,4 @@ body {
 .close:after {
   transform: rotate(-45deg);
 }
+.close-certificates:before, .close-certificates:after { background-color: #f3eee2; }

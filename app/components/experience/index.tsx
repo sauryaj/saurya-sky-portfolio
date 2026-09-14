@@ -1,14 +1,18 @@
 import { Text, useScroll } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { usePortalStore } from "@stores";
 import { useRef } from "react";
-import { isMobile } from "react-device-detect";
+
 import * as THREE from 'three';
 import GridTile from "./GridTile";
 import Projects from "./projects";
 import Work from "./work";
+import Certificates from "./certificates";
 
 const Experience = () => {
+  // The portal composition needs the stacked treatment on medium screens too;
+  // three full paintings side-by-side becomes clipped before true mobile width.
+  const isMobile = useThree(state => state.size.width < 1050);
   const titleRef = useRef<THREE.Group>(null);
   const groupRef = useRef<THREE.Group>(null);
   const data = useScroll();
@@ -42,7 +46,7 @@ const Experience = () => {
   const getTitle = () => {
     const title = 'experience'.toUpperCase();
     return title.split('').map((char, i) => {
-      const diff = isMobile ? 0.4 : 0.8;
+      const diff = isMobile ? 0.3 : 0.8;
       return (
         <Text key={i} {...fontProps} position={[i * diff, 2, 1]}>{char}</Text>
       );
@@ -56,7 +60,7 @@ const Experience = () => {
         <shadowMaterial opacity={0.1} />
       </mesh> */}
       <group rotation={[0, 0, Math.PI / 2]}>
-        <group ref={titleRef} position={[isMobile ? -1.8 : -3.6, 2, -2]}>
+        <group ref={titleRef} position={[isMobile ? -1.35 : -3.6, 2, -2]}>
           {getTitle()}
         </group>
 
@@ -64,16 +68,23 @@ const Experience = () => {
           <GridTile title='WORK AND EDUCATION'
             id="work"
             color='#b9c6d6'
-            textAlign='left'
-            position={new THREE.Vector3(isMobile ? -1 : -2, 0, isMobile ? 0.4 : 0)}>
+            textAlign='center'
+            size={isMobile ? [3, 1.25] : [2.6, 4]}
+            position={new THREE.Vector3(isMobile ? 0 : -2.8, isMobile ? 1.4 : 0, 0)}>
             <Work/>
           </GridTile>
           <GridTile title='SIDE PROJECTS'
             id="projects"
             color='#bdd1e3'
-            textAlign='right'
-            position={new THREE.Vector3(isMobile ? 1 : 2, 0, 0)}>
+            textAlign='center'
+            size={isMobile ? [3, 1.25] : [2.6, 4]}
+            position={new THREE.Vector3(0, 0, 0)}>
             <Projects/>
+          </GridTile>
+          <GridTile title="CERTIFICATES" id="certificates" color="#b5aa8e" textAlign="center"
+            size={isMobile ? [3, 1.25] : [2.6, 4]}
+            position={new THREE.Vector3(isMobile ? 0 : 2.8, isMobile ? -1.4 : 0, 0)}>
+            <Certificates />
           </GridTile>
         </group>
       </group>

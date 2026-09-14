@@ -1,12 +1,12 @@
 
-import { Edges, MeshPortalMaterial, Text, TextProps, useScroll } from '@react-three/drei';
-import { useFrame, useThree } from '@react-three/fiber';
+import { Edges, MeshPortalMaterial, Text, TextProps } from '@react-three/drei';
+import { useThree } from '@react-three/fiber';
 import { usePortalStore } from '@stores';
 import gsap from "gsap";
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { isMobile } from 'react-device-detect';
 import * as THREE from 'three';
-import { TriangleGeometry } from './Triangle';
+
 
 interface GridTileProps {
   id: string;
@@ -15,6 +15,7 @@ interface GridTileProps {
   children: React.ReactNode;
   color: string;
   position: THREE.Vector3;
+  size?: [number, number];
 }
 
 // TODO: Rename this
@@ -23,38 +24,11 @@ const GridTile = (props: GridTileProps) => {
   const gridRef = useRef<THREE.Group>(null);
   const hoverBoxRef = useRef<THREE.Mesh>(null);
   const portalRef = useRef(null);
-  const { title, textAlign, children, color, position, id } = props;
+  const { title, textAlign, children, color, position, id, size = [4, 4] } = props;
   const { camera } = useThree();
   const setActivePortal = usePortalStore((state) => state.setActivePortal);
   const isActive = usePortalStore((state) => state.activePortalId === id);
   const activePortalId = usePortalStore((state) => state.activePortalId);
-  const data = useScroll();
-
-  useEffect(() => {
-    // Hanlde the hover box and title animation for mobile.
-    if (isMobile && titleRef.current) {
-      const isWork = id === 'work';
-      gsap.to(titleRef.current, {
-        fontSize: 0.13,
-        maxWidth: 4,
-        color: isWork ? '#FFF' : '#888',
-        letterSpacing: 0.4,
-      });
-      gsap.to(titleRef.current.position, {
-        x: isWork ? 1: -1,
-        y: isWork ? -1.7 : 1.5,
-        duration: 0.5,
-      });
-    }
-  }, []);
-
-  useFrame(() => {
-    const d = data.range(0.95, 0.05);
-    if (isMobile && titleRef.current) {
-      /* eslint-disable  @typescript-eslint/no-explicit-any */
-      (titleRef.current as any).fillOpacity = d;
-    }
-  });
 
   const handleEscape = (e: KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -65,11 +39,13 @@ const GridTile = (props: GridTileProps) => {
   const portalInto = (e: React.MouseEvent) => {
     if (isActive || activePortalId) return;
     e.stopPropagation();
+    const portalDuration = id === 'certificates' ? 1.15 : 0.85;
     setActivePortal(id);
     document.body.style.cursor = 'auto';
-    const div = document.createElement('div');
+    const div = document.createElement('button');
 
-    div.className = 'fixed close';
+    div.className = `fixed close${id === 'certificates' ? ' close-certificates' : ''}`;
+    div.setAttribute('aria-label', 'Return to experience');
     div.style.transform = 'rotateX(90deg)';
     div.onclick = () => exitPortal(true);
 
@@ -84,38 +60,48 @@ const GridTile = (props: GridTileProps) => {
         zIndex: 10,
         transform: 'rotateX(0deg)',
         scale: 1,
-        duration: 1,
+        duration: portalDuration,
       })
     }
     document.body.addEventListener('keydown', handleEscape);
     gsap.to(portalRef.current, {
       blend: 1,
-      duration: 0.5,
+      duration: portalDuration,
+      ease: 'power2.inOut',
     });
   };
 
   const exitPortal = (force = false) => {
     if (!force && !activePortalId) return;
+    const portalDuration = id === 'certificates' ? 1.15 : 1.1;
     setActivePortal(null)
 
     gsap.to(camera.position, {
       x: 0,
-      duration: 1,
+      duration: portalDuration,
+      ease: 'power2.inOut',
     });
 
     gsap.to(camera.rotation, {
       x: -Math.PI / 2,
       y: 0,
-      duration: 1,
+      duration: portalDuration,
+      ease: 'power2.inOut',
     });
 
     gsap.to(portalRef.current, {
       blend: 0,
-      duration: 1,
+      duration: portalDuration,
+      ease: 'power2.inOut',
     });
 
-    // Remove the div from the dom
-    gsap.to(document.querySelector('.close'), {
+    // Remove the return control from the DOM after the portal closes.
+    const closeButton = document.querySelector('.close');
+    if (!closeButton) {
+      document.body.removeEventListener('keydown', handleEscape);
+      return;
+    }
+    gsap.to(closeButton, {
       scale: 0,
       duration: 0.5,
       onComplete: () => {
@@ -129,13 +115,13 @@ const GridTile = (props: GridTileProps) => {
 
   const fontProps: Partial<TextProps> = {
     font: "./soria-font.ttf",
-    maxWidth: 2,
+    maxWidth: size[0] - 0.3,
     anchorX: 'center',
     anchorY: 'bottom',
-    fontSize: 0.7,
+    fontSize: size[1] < 2 ? 0.2 : 0.3,
     color: 'white',
     textAlign: textAlign,
-    fillOpacity: 0,
+    fillOpacity: 1,
   };
 
   const onPointerOver = () => {
@@ -154,25 +140,12 @@ const GridTile = (props: GridTileProps) => {
     if (isMobile) return;
     document.body.style.cursor = 'auto';
     gsap.to(titleRef.current, {
-      fillOpacity: 0
+      fillOpacity: 1
     });
     if (gridRef.current && hoverBoxRef.current) {
       gsap.to(gridRef.current.position, { z: 0, duration: 0.4});
       gsap.to(hoverBoxRef.current.scale, { x: 0, y: 0, z: 0, duration: 0.4 });
     }
-  };
-
-  const getGeometry = () => {
-    if (!isMobile) {
-      return <planeGeometry args={[4, 4, 1]} />
-    }
-
-    const isWork = id === 'work';
-    const points = isWork ?
-      [[-1, 2, 0], [-1, -2, 0], [3, -2, 0]] :
-      [[-3, 2, 0], [1, -2, 0], [1, 2, 0]];
-
-    return <primitive object={TriangleGeometry({ points })} attach="geometry" />
   };
 
   return (
@@ -181,10 +154,14 @@ const GridTile = (props: GridTileProps) => {
       onClick={portalInto}
       onPointerOver={onPointerOver}
       onPointerOut={onPointerOut}>
-      { getGeometry() }
+      <planeGeometry args={size} />
       <group>
+        <mesh position={[0, -size[1] / 2 + 0.28, 0.2]}>
+          <planeGeometry args={[size[0], 0.56]} />
+          <meshBasicMaterial color="#10202d" transparent opacity={0.8} />
+        </mesh>
         <mesh position={[0, 0, -0.01]} ref={hoverBoxRef} scale={[0, 0, 0]}>
-          <boxGeometry args={[4, 4, 0.5]}/>
+          <boxGeometry args={[...size, 0.5]}/>
           <meshPhysicalMaterial
             color="#444"
             transparent={true}
@@ -192,7 +169,7 @@ const GridTile = (props: GridTileProps) => {
           />
           <Edges color="white" lineWidth={3}/>
         </mesh>
-        <Text position={[0, -1.8, 0.4]} {...fontProps} ref={titleRef}>
+        <Text position={[0, -size[1] / 2 + 0.12, 0.4]} {...fontProps} ref={titleRef}>
           {title}
         </Text>
       </group>
