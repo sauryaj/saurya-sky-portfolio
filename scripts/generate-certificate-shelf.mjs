@@ -92,6 +92,24 @@ const certificateArtwork = `
 
 const upwardExitGesture = `
     let upwardExitTravel = 0;
+    let downwardExitTouchY = null;
+
+    function onExitTouchStart(event) {
+      if (mode !== "hero") return;
+      downwardExitTouchY = event.touches[0]?.clientY ?? null;
+    }
+
+    function onExitTouchMove(event) {
+      if (mode !== "hero" || downwardExitTouchY === null) return;
+      const travel = (event.touches[0]?.clientY ?? downwardExitTouchY) - downwardExitTouchY;
+      if (travel < 90) return;
+      downwardExitTouchY = null;
+      window.parent.postMessage({ type: "certificate-archive:request-close" }, "*");
+    }
+
+    function onExitTouchEnd() {
+      downwardExitTouchY = null;
+    }
 `;
 
 const fluidMotionStyles = `
@@ -328,8 +346,16 @@ function buildCertificateShelf(source, books) {
     '      window.removeEventListener("blur", onWindowBlur);\n      window.removeEventListener("message", onParentPlaybackMessage);'
   );
   output = output.replace(
+    '      experience.removeEventListener("wheel", onWheel);',
+    '      experience.removeEventListener("wheel", onWheel);\n      experience.removeEventListener("touchstart", onExitTouchStart);\n      experience.removeEventListener("touchmove", onExitTouchMove);\n      experience.removeEventListener("touchend", onExitTouchEnd);'
+  );
+  output = output.replace(
     '      window.addEventListener("blur", onWindowBlur);',
     '      window.addEventListener("blur", onWindowBlur);\n      window.addEventListener("message", onParentPlaybackMessage);'
+  );
+  output = output.replace(
+    '      experience.addEventListener("wheel", onWheel, { passive: false });',
+    '      experience.addEventListener("wheel", onWheel, { passive: false });\n      experience.addEventListener("touchstart", onExitTouchStart, { passive: true });\n      experience.addEventListener("touchmove", onExitTouchMove, { passive: true });\n      experience.addEventListener("touchend", onExitTouchEnd, { passive: true });'
   );
   output = output.replace(
     '      fallbackStatus.textContent = message;',

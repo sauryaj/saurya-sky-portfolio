@@ -2193,6 +2193,24 @@
     let wheelIdle = 0;
 
     let upwardExitTravel = 0;
+    let downwardExitTouchY = null;
+
+    function onExitTouchStart(event) {
+      if (mode !== "hero") return;
+      downwardExitTouchY = event.touches[0]?.clientY ?? null;
+    }
+
+    function onExitTouchMove(event) {
+      if (mode !== "hero" || downwardExitTouchY === null) return;
+      const travel = (event.touches[0]?.clientY ?? downwardExitTouchY) - downwardExitTouchY;
+      if (travel < 90) return;
+      downwardExitTouchY = null;
+      window.parent.postMessage({ type: "certificate-archive:request-close" }, "*");
+    }
+
+    function onExitTouchEnd() {
+      downwardExitTouchY = null;
+    }
 
     let focusReturnTarget = inspectButton;
     let activeBook = null;
@@ -5826,6 +5844,9 @@
       window.removeEventListener("pointerup", onWindowPagePointerEnd);
       window.removeEventListener("pointercancel", onWindowPagePointerEnd);
       experience.removeEventListener("wheel", onWheel);
+      experience.removeEventListener("touchstart", onExitTouchStart);
+      experience.removeEventListener("touchmove", onExitTouchMove);
+      experience.removeEventListener("touchend", onExitTouchEnd);
       canvas.removeEventListener("webglcontextlost", handleContextLost);
       window.removeEventListener("resize", resize);
       window.removeEventListener("keydown", onKeyDown);
@@ -5947,6 +5968,9 @@
       window.addEventListener("pointerup", onWindowPagePointerEnd);
       window.addEventListener("pointercancel", onWindowPagePointerEnd);
       experience.addEventListener("wheel", onWheel, { passive: false });
+      experience.addEventListener("touchstart", onExitTouchStart, { passive: true });
+      experience.addEventListener("touchmove", onExitTouchMove, { passive: true });
+      experience.addEventListener("touchend", onExitTouchEnd, { passive: true });
       canvas.addEventListener("webglcontextlost", handleContextLost);
       window.addEventListener("resize", resize);
       window.addEventListener("keydown", onKeyDown);
