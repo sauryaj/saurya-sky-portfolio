@@ -18,6 +18,7 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
   const ref= useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const backgroundColor = useThemeStore((state) => state.theme.color);
+  const certificateOpen = usePortalStore(state => state.activePortalId === "certificates");
   const archiveActive = usePortalStore(state => state.activePortalId === "certificates" && state.phase === "active");
   const { progress } = useProgress();
   const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
@@ -66,11 +67,11 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
     <div className="h-[100dvh] wrapper relative">
       <div className="h-[100dvh] relative" ref={ref}>
         <Canvas className="base-canvas"
-          shadows
+          shadows={!certificateOpen}
           style={canvasStyle}
           ref={canvasRef}
           frameloop={archiveActive ? "never" : "always"}
-          dpr={[1, 1.5]}>
+          dpr={certificateOpen ? 1 : [1, 1.5]}>
           <Suspense fallback={null}>
             <ambientLight intensity={0.5} />
 

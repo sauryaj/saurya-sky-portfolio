@@ -5575,7 +5575,7 @@
 
     let settleUntil = 0;
     function requestFrame(fromInput = true) {
-      if (fromInput !== false) settleUntil = performance.now() + 1400;
+      if (fromInput !== false) settleUntil = performance.now() + 900;
       if (fromInput !== false && !rafId) lastTime = performance.now();
       if (!rafId && !suspended) {
         rafId = requestAnimationFrame(frame);
@@ -5594,15 +5594,26 @@
     }
 
     let slowFrameCount = 0;
+    let healthyFrameCount = 0;
     let qualityReduced = false;
+    let qualityPromoted = false;
     function frame(time) {
       const frameMs = time - lastTime;
-      if (!document.hidden && frameMs > 24 && frameMs < 150) slowFrameCount++;
-      else slowFrameCount = Math.max(0, slowFrameCount - 1);
-      if (slowFrameCount > 45 && !qualityReduced) {
+      if (!document.hidden && frameMs > 24 && frameMs < 150) {
+        slowFrameCount++;
+        healthyFrameCount = 0;
+      } else {
+        slowFrameCount = Math.max(0, slowFrameCount - 1);
+        if (!document.hidden && frameMs > 0 && frameMs < 18) healthyFrameCount++;
+      }
+      if (slowFrameCount > 12 && !qualityReduced) {
         qualityReduced = true;
+        qualityPromoted = false;
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1));
         renderer.shadowMap.enabled = false;
+      } else if (healthyFrameCount > 45 && !qualityPromoted && !qualityReduced && viewWidth >= 820) {
+        qualityPromoted = true;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
       }
       rafId = 0;
       const delta = Math.min((time - lastTime) / 1000, 0.05);
@@ -5644,7 +5655,7 @@
       viewHeight = window.innerHeight;
       configureResponsiveTargets();
       renderer.setSize(viewWidth, viewHeight, false);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, (qualityReduced || viewWidth < 820) ? 1 : 1.5));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, (qualityPromoted && !qualityReduced && viewWidth >= 820) ? 1.5 : 1));
       camera.aspect = viewWidth / viewHeight;
       camera.updateProjectionMatrix();
 

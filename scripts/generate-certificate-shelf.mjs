@@ -330,7 +330,7 @@ function buildCertificateShelf(source, books) {
   // Internal animation frames must not extend the input settling deadline.
   output = output.replace('    function requestFrame() {', `    let settleUntil = 0;
     function requestFrame(fromInput = true) {
-      if (fromInput !== false) settleUntil = performance.now() + 1400;
+      if (fromInput !== false) settleUntil = performance.now() + 900;
       if (fromInput !== false && !rafId) lastTime = performance.now();`);
   output = output.replace('const shouldContinue = !reducedMotion', 'const shouldContinue = time < settleUntil || pageDrag.active');
   output = output.replace('if (shouldContinue && !suspended) requestFrame();', 'if (shouldContinue && !suspended) requestFrame(false);');
@@ -352,17 +352,28 @@ function buildCertificateShelf(source, books) {
   output = output.replace('ctx.fillText(coverTitle, 58, 1020);', '// Title is printed once on the base cover.');
   output = output.replace('ctx.fillText(book.discipline.toUpperCase(), 60, 1066);', '// Discipline is printed once on the base cover.');
   output = output.replace('    function frame(time) {', `    let slowFrameCount = 0;
+    let healthyFrameCount = 0;
     let qualityReduced = false;
+    let qualityPromoted = false;
     function frame(time) {
       const frameMs = time - lastTime;
-      if (!document.hidden && frameMs > 24 && frameMs < 150) slowFrameCount++;
-      else slowFrameCount = Math.max(0, slowFrameCount - 1);
-      if (slowFrameCount > 45 && !qualityReduced) {
+      if (!document.hidden && frameMs > 24 && frameMs < 150) {
+        slowFrameCount++;
+        healthyFrameCount = 0;
+      } else {
+        slowFrameCount = Math.max(0, slowFrameCount - 1);
+        if (!document.hidden && frameMs > 0 && frameMs < 18) healthyFrameCount++;
+      }
+      if (slowFrameCount > 12 && !qualityReduced) {
         qualityReduced = true;
+        qualityPromoted = false;
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1));
         renderer.shadowMap.enabled = false;
+      } else if (healthyFrameCount > 45 && !qualityPromoted && !qualityReduced && viewWidth >= 820) {
+        qualityPromoted = true;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
       }`);
-  output = output.replace('viewWidth < 820 ? 1 : 1.5)', '(qualityReduced || viewWidth < 820) ? 1 : 1.5)');
+  output = output.replace('viewWidth < 820 ? 1 : 1.5)', '(qualityPromoted && !qualityReduced && viewWidth >= 820) ? 1.5 : 1)');
   output = output.replace(/    function makeInteriorPageTextures\(book\) \{[\s\S]*?\n    function makeContactShadowTexture\(\)/, `    function makeInteriorPageTextures(book) {
       const pages = [
         ["Qualification", book.title], ["Issuer", book.issuer],
