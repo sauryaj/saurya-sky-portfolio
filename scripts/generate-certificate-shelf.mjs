@@ -90,6 +90,10 @@ const certificateArtwork = `
     }
 `;
 
+const upwardExitGesture = `
+    let upwardExitTravel = 0;
+`;
+
 const fluidMotionStyles = `
     <style id="certificate-fluid-motion">
       .detail-panel {
@@ -165,6 +169,25 @@ function buildCertificateShelf(source, books) {
     return `        <article class="fallback-book" style="--book-color:${escapeHtml(book.color)};--book-foil:${escapeHtml(book.foil)};--book-height:${height}px"><span>Volume ${escapeHtml(book.roman)} · ${escapeHtml(book.issuer)}</span><strong>${escapeHtml(book.coverTitle)}</strong></article>`;
   }).join('\n');
   let output = `${source.slice(0, booksStart)}${bookBlock}${source.slice(booksEnd)}`;
+  output = output.replace(
+    '    let wheelIdle = 0;',
+    '    let wheelIdle = 0;\n' + upwardExitGesture
+  );
+  output = output.replace(
+    `      const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+      targetPosition += clamp(delta * 0.0022, -0.72, 0.72);`,
+    `      const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+      if (delta < 0) {
+        upwardExitTravel += Math.abs(delta);
+        if (upwardExitTravel >= 120) {
+          upwardExitTravel = 0;
+          window.parent.postMessage({ type: "certificate-archive:request-close" }, "*");
+        }
+        return;
+      }
+      upwardExitTravel = 0;
+      targetPosition += clamp(delta * 0.0022, -0.72, 0.72);`
+  );
   output = output.replace(
     'https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js',
     '../vendor/three-r165/three.module.js'

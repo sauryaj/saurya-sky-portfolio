@@ -2191,6 +2191,9 @@
     let selectedIndex = 0;
     let hoveredIndex = -1;
     let wheelIdle = 0;
+
+    let upwardExitTravel = 0;
+
     let focusReturnTarget = inspectButton;
     let activeBook = null;
     let readingOpen = false;
@@ -5197,6 +5200,15 @@
       if (mode !== "hero") return;
       event.preventDefault();
       const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+      if (delta < 0) {
+        upwardExitTravel += Math.abs(delta);
+        if (upwardExitTravel >= 120) {
+          upwardExitTravel = 0;
+          window.parent.postMessage({ type: "certificate-archive:request-close" }, "*");
+        }
+        return;
+      }
+      upwardExitTravel = 0;
       targetPosition += clamp(delta * 0.0022, -0.72, 0.72);
       wheelIdle = 0.10;
       requestFrame();
