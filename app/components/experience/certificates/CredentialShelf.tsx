@@ -4,7 +4,7 @@ import { useState, type CSSProperties } from 'react';
 import { CERTIFICATE_BOOKS } from './data';
 import styles from './completeShelf.module.css';
 
-export default function CredentialShelf({ onOpen3D }: { onOpen3D: () => void }) {
+export default function CredentialShelf({ onOpen3D }: { onOpen3D?: () => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const book = CERTIFICATE_BOOKS.find(item => item.id === selected);
   return <section className={styles.catalog} aria-label="Certificate archive">
@@ -18,7 +18,7 @@ export default function CredentialShelf({ onOpen3D }: { onOpen3D: () => void }) 
         {book.credentialId && <><dt>Credential ID</dt><dd>{book.credentialId}</dd></>}
       </dl>
       <p className={styles.catalogNote}>Credential verification link has not been supplied.</p>
-      <button onClick={onOpen3D}>Explore the 3D archive</button>
+      {onOpen3D && <button onClick={onOpen3D}>Explore the 3D archive</button>}
     </article> : <>
       <p>Choose a volume to explore your credentials.</p>
       <div className={styles.mobileBooks}>
@@ -31,7 +31,7 @@ export default function CredentialShelf({ onOpen3D }: { onOpen3D: () => void }) 
         </button>)}
       </div>
       <p className={styles.catalogNote}>Swipe to browse · Tap a volume for details</p>
-      <button onClick={onOpen3D}>Explore the 3D archive</button>
+      {onOpen3D && <button onClick={onOpen3D}>Explore the 3D archive</button>}
     </>}
   </section>;
 }

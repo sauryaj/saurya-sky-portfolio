@@ -69,7 +69,7 @@ type ShelfFrameStyle = CSSProperties & {
 /**
  * The registered ThreeUI component is a complete authored HTML/Three.js
  * document. Keeping it in its own frame preserves its DOM, CSS, import map,
- * renderer, camera choreography, and responsive behavior byte-for-byte.
+ * renderer and camera choreography, with a native catalog while it loads.
  */
 export function CompleteShelfLandingPage({
   className = '',
@@ -179,23 +179,38 @@ export function CompleteShelfLandingPage({
       aria-hidden={state !== 'active'}
       inert={state !== 'active'}
       style={frameStyle}
+      data-archive-status={lightweight ? 'catalog' : ready ? 'ready' : 'loading'}
     >
-      {lightweight ? <CredentialShelf onOpen3D={() => {
+      {(lightweight || !ready) && <CredentialShelf onOpen3D={lightweight ? () => {
         setFailed(false);
         setReady(false);
         setRequested3D(true);
-      }} /> : <iframe
+      } : undefined} />}
+      {!lightweight && <iframe
         ref={iframeRef}
         title="Certificate Archive — Five Verified Credentials"
         src="/landing-pages/certificate-shelf.html"
         loading="eager"
         sandbox="allow-same-origin allow-scripts"
-        aria-hidden={state !== 'active'}
-        inert={state !== 'active'}
-        tabIndex={state === 'active' ? 0 : -1}
+        aria-hidden={state !== 'active' || !ready}
+        inert={state !== 'active' || !ready}
+        tabIndex={state === 'active' && ready ? 0 : -1}
         onLoad={(event) => {
-          applySaintJeromeWallpaper(event.currentTarget);
+          const frame = event.currentTarget;
+          try {
+            const experience = frame.contentDocument?.querySelector('#experience');
+            if (!experience) {
+              setFailed(true);
+              return;
+            }
+            applySaintJeromeWallpaper(frame);
+            // Recover if the ready message arrived before the listener was attached.
+            setReady(experience.classList.contains('webgl-ready'));
+          } catch {
+            setFailed(true);
+          }
         }}
+        onError={() => setFailed(true)}
       />}
     </div>
   );
