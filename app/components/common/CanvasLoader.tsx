@@ -74,7 +74,7 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
           <Suspense fallback={null}>
             <ambientLight intensity={0.5} />
 
-            <ScrollControls pages={4} damping={0.4} maxSpeed={1} distance={1} style={{ zIndex: 1 }}>
+            <ScrollControls pages={4} damping={0.16} maxSpeed={3} distance={1} style={{ zIndex: 1 }}>
               {props.children}
               <PortalTransitionController />
             </ScrollControls>

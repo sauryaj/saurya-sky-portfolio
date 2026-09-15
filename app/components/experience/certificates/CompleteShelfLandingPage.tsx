@@ -1,9 +1,16 @@
 'use client';
 
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 
 import styles from './completeShelf.module.css';
 import { SAINT_JEROME_WALLPAPER } from './artwork';
+import CredentialShelf from './CredentialShelf';
+
+const subscribeScreen = (callback: () => void) => {
+  const query = window.matchMedia('(max-width: 819px)');
+  query.addEventListener('change', callback);
+  return () => query.removeEventListener('change', callback);
+};
 
 function applySaintJeromeWallpaper(frame: HTMLIFrameElement) {
   const document = frame.contentDocument;
@@ -82,9 +89,23 @@ export function CompleteShelfLandingPage({
 }: CompleteShelfLandingPageProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [ready, setReady] = useState(false);
+  const compact = useSyncExternalStore(subscribeScreen, () => window.matchMedia('(max-width: 819px)').matches, () => true);
+  const [requested3D, setRequested3D] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const lightweight = (compact && !requested3D) || failed;
+
+  useEffect(() => {
+    if (lightweight || ready) return;
+    const timeout = window.setTimeout(() => setFailed(true), 8000);
+    return () => window.clearTimeout(timeout);
+  }, [lightweight, ready]);
 
   useEffect(() => {
     const receiveFrameMessage = (event: MessageEvent) => {
+      if (event.source === iframeRef.current?.contentWindow && event.data?.type === 'certificate-archive:fallback') {
+        setFailed(true);
+        return;
+      }
       if (
         event.source === iframeRef.current?.contentWindow &&
         event.data?.type === 'certificate-archive:ready'
@@ -159,7 +180,11 @@ export function CompleteShelfLandingPage({
       inert={state !== 'active'}
       style={frameStyle}
     >
-      <iframe
+      {lightweight ? <CredentialShelf onOpen3D={() => {
+        setFailed(false);
+        setReady(false);
+        setRequested3D(true);
+      }} /> : <iframe
         ref={iframeRef}
         title="Certificate Archive — Five Verified Credentials"
         src="/landing-pages/certificate-shelf.html"
@@ -171,7 +196,7 @@ export function CompleteShelfLandingPage({
         onLoad={(event) => {
           applySaintJeromeWallpaper(event.currentTarget);
         }}
-      />
+      />}
     </div>
   );
 }

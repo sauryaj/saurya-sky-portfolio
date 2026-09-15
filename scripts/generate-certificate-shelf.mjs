@@ -38,7 +38,7 @@ const runtimeWatchdog = `
       if (fallbackStatus) {
         fallbackStatus.textContent = "The interactive shelf is taking longer than expected. The complete static catalog remains available.";
       }
-      window.parent.postMessage({ type: "certificate-archive:ready" }, "*");
+      window.parent.postMessage({ type: "certificate-archive:fallback" }, "*");
     }, 6000);
   </script>
 `;
@@ -310,7 +310,7 @@ function buildCertificateShelf(source, books) {
   );
   output = output.replace(
     '      fallbackStatus.textContent = message;',
-    '      fallbackStatus.textContent = message;\n      window.clearTimeout(window.__certificateArchiveWatchdog);\n      window.parent.postMessage({ type: "certificate-archive:ready" }, "*");'
+    '      fallbackStatus.textContent = message;\n      window.clearTimeout(window.__certificateArchiveWatchdog);\n      window.parent.postMessage({ type: "certificate-archive:fallback" }, "*");'
   );
   output = output.replace(
     '      experience.classList.add("webgl-ready");\n      requestFrame();',
@@ -326,6 +326,74 @@ function buildCertificateShelf(source, books) {
     'Math.min(window.devicePixelRatio || 1, 1.5)'
   );
   output = output.replace('key.shadow.mapSize.set(2048, 2048);', 'key.shadow.mapSize.set(1024, 1024);');
+  // Input wakes rendering; allow damped covers/pages to settle before sleeping.
+  // Internal animation frames must not extend the input settling deadline.
+  output = output.replace('    function requestFrame() {', `    let settleUntil = 0;
+    function requestFrame(fromInput = true) {
+      if (fromInput !== false) settleUntil = performance.now() + 1400;
+      if (fromInput !== false && !rafId) lastTime = performance.now();`);
+  output = output.replace('const shouldContinue = !reducedMotion', 'const shouldContinue = time < settleUntil || pageDrag.active');
+  output = output.replace('if (shouldContinue && !suspended) requestFrame();', 'if (shouldContinue && !suspended) requestFrame(false);');
+  output = output.replace('      updateDust(elapsed);', '      // Ambient dust stays still so the archive can sleep between interactions.');
+  output = output.replace('const idle = reducedMotion ? 0 : Math.sin(elapsed * 0.72 + index * 0.8) * 0.012 * focus;', 'const idle = 0;');
+  output = output.replace('damp(position, targetPosition, 9.5, delta)', 'damp(position, targetPosition, 18, delta)');
+  output = output.replace('const speed = reducedMotion ? 1000 : 12;', 'const speed = reducedMotion ? 1000 : 22;');
+  output = output.replace('wheelIdle = 0.14;', 'wheelIdle = 0.10;');
+  output = output.replace('    function onPointerLeave() {', '    function onPointerLeave() {\n      requestFrame();');
+  // Keep baked contact shadows on small/touch displays without a shadow pass.
+  output = output.replace('renderer.shadowMap.enabled = true;', 'renderer.shadowMap.enabled = !window.matchMedia("(pointer: coarse), (max-width: 819px)").matches;');
+  output = output.replace('Math.min(window.devicePixelRatio || 1, 1.5)', 'Math.min(window.devicePixelRatio || 1, viewWidth < 820 ? 1 : 1.5)');
+  output = output.replace('</head>', `<style>
+    #palette-label { display:none; }
+    .selection__title { white-space:normal !important; overflow:visible !important; text-overflow:clip !important; font-size:clamp(24px, 3.2vw, 48px) !important; }
+    .detail-title { overflow-wrap:anywhere; }
+  </style></head>`);
+  // The base cover already contains the title; foil repeats were printed over it.
+  output = output.replace('ctx.fillText(coverTitle, 58, 1020);', '// Title is printed once on the base cover.');
+  output = output.replace('ctx.fillText(book.discipline.toUpperCase(), 60, 1066);', '// Discipline is printed once on the base cover.');
+  output = output.replace('    function frame(time) {', `    let slowFrameCount = 0;
+    let qualityReduced = false;
+    function frame(time) {
+      const frameMs = time - lastTime;
+      if (!document.hidden && frameMs > 24 && frameMs < 150) slowFrameCount++;
+      else slowFrameCount = Math.max(0, slowFrameCount - 1);
+      if (slowFrameCount > 45 && !qualityReduced) {
+        qualityReduced = true;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1));
+        renderer.shadowMap.enabled = false;
+      }`);
+  output = output.replace('viewWidth < 820 ? 1 : 1.5)', '(qualityReduced || viewWidth < 820) ? 1 : 1.5)');
+  output = output.replace(/    function makeInteriorPageTextures\(book\) \{[\s\S]*?\n    function makeContactShadowTexture\(\)/, `    function makeInteriorPageTextures(book) {
+      const pages = [
+        ["Qualification", book.title], ["Issuer", book.issuer],
+        ["Overview", book.deck], ["Issued", book.issued],
+        ["Validity", book.validity], ["Status", book.statusLabel],
+        ["Credential ID", book.credentialId || "Not supplied"],
+        ["Verification", "A verification link and original certificate scan have not been supplied."]
+      ];
+      return pages.map(([title, text], index) => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 512; canvas.height = 768;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#f5efdf"; ctx.fillRect(0, 0, 512, 768);
+        ctx.fillStyle = "#493d30"; ctx.font = "16px Arial";
+        ctx.fillText(book.issuer.toUpperCase(), 48, 60);
+        ctx.font = "32px Georgia"; ctx.fillText(title, 48, 140);
+        ctx.font = "23px Georgia";
+        drawWrappedCanvasText(ctx, text, 48, 210, 30, 34, 12);
+        ctx.font = "12px Arial";
+        ctx.fillText("CREDENTIAL SUMMARY · " + (index + 1), 48, 716);
+        return configureCanvasTexture(new THREE.CanvasTexture(canvas));
+      });
+    }
+
+    function makeContactShadowTexture()`);
+  output = output.replace('`${book.chapters[0]} · Plate`', '"Qualification · Issuer"');
+  output = output.replace('`${book.chapters[1]} · Notes`', '"Overview · Issued"');
+  output = output.replace('`${book.chapters[2]} · System`', '"Validity · Status"');
+  output = output.replace('"Colophon"', '"Credential ID · Verification"');
+  output = output.replaceAll('sample page', 'credential page');
+  output = output.replaceAll('Available from issuer', 'Not supplied');
   return output;
 }
 
