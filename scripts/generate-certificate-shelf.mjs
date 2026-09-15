@@ -6,6 +6,43 @@ const sourcePath = join(projectRoot, 'public/landing-pages/complete-shelf-v2.htm
 const dataPath = join(projectRoot, 'app/components/experience/certificates/data.ts');
 const outputPath = join(projectRoot, 'public/landing-pages/certificate-shelf.html');
 
+const localRuntimeStyles = `
+    <style id="certificate-local-runtime">
+      html,
+      body,
+      .experience {
+        background-color: #403125;
+      }
+
+      .experience {
+        background-image:
+          linear-gradient(rgba(30, 22, 18, 0.54), rgba(30, 22, 18, 0.54)),
+          url("../artwork/saint-jerome-study-1920.jpg");
+        background-position: center;
+        background-size: cover;
+      }
+    </style>
+`;
+
+const runtimeWatchdog = `
+  <script>
+    window.__certificateArchiveWatchdog = window.setTimeout(() => {
+      const experience = document.querySelector("#experience");
+      if (experience?.classList.contains("webgl-ready")) return;
+
+      const loading = document.querySelector("#loading");
+      const staticFallback = document.querySelector("#static-fallback");
+      const fallbackStatus = document.querySelector("#fallback-status");
+      if (loading) loading.hidden = true;
+      if (staticFallback) staticFallback.hidden = false;
+      if (fallbackStatus) {
+        fallbackStatus.textContent = "The interactive shelf is taking longer than expected. The complete static catalog remains available.";
+      }
+      window.parent.postMessage({ type: "certificate-archive:ready" }, "*");
+    }, 6000);
+  </script>
+`;
+
 const certificateArtwork = `
     function drawCertificateArtwork(ctx, book, width, height) {
       const centerX = width * 0.5;
@@ -107,6 +144,14 @@ function readCertificateBooks(source) {
   return Function(`"use strict"; return (${match[1]});`)();
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
+
 function buildCertificateShelf(source, books) {
   const booksStart = source.indexOf('    const BOOKS = [');
   const booksEnd = source.indexOf('    const COVER_ATLAS_DATA', booksStart);
@@ -115,11 +160,24 @@ function buildCertificateShelf(source, books) {
   }
 
   const bookBlock = `    const BOOKS = ${JSON.stringify(books, null, 2)};\n\n`;
+  const fallbackBooks = books.map((book) => {
+    const height = Math.round(350 + (book.height - 1.5) * 360);
+    return `        <article class="fallback-book" style="--book-color:${escapeHtml(book.color)};--book-foil:${escapeHtml(book.foil)};--book-height:${height}px"><span>Volume ${escapeHtml(book.roman)} · ${escapeHtml(book.issuer)}</span><strong>${escapeHtml(book.coverTitle)}</strong></article>`;
+  }).join('\n');
   let output = `${source.slice(0, booksStart)}${bookBlock}${source.slice(booksEnd)}`;
   output = output.replace(
-    '</head>',
-    `<style id="certificate-archive-status">\n      .credential-status { color: #c87046; font-weight: 600; }\n      .credential-status[data-status="expired"] { color: #d98b78; }\n    </style>\n${fluidMotionStyles}</head>`
+    'https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js',
+    '../vendor/three-r165/three.module.js'
   );
+  output = output.replace(
+    'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/',
+    '../vendor/three-r165/addons/'
+  );
+  output = output.replace(
+    '</head>',
+    `${localRuntimeStyles}<style id="certificate-archive-status">\n      .credential-status { color: #c87046; font-weight: 600; }\n      .credential-status[data-status="expired"] { color: #d98b78; }\n    </style>\n${fluidMotionStyles}</head>`
+  );
+  output = output.replace('  <script type="module">', `${runtimeWatchdog}  <script type="module">`);
   output = output.replace('    const COVER_ATLAS_DATA =', `${certificateArtwork}\n    const COVER_ATLAS_DATA =`);
   output = output.replace(
     '      ctx.fillStyle = book.color;\n      ctx.fillRect(0, 0, canvasTexture.width, canvasTexture.height);',
@@ -155,6 +213,15 @@ function buildCertificateShelf(source, books) {
   output = output.replaceAll('Edition 02 · 2026', 'Credential archive · 2026');
   output = output.replace('seven tactile field guides for contemporary creative tools', 'five verified credentials for security, cloud, and systems engineering');
   output = output.replace('Working Volumes · Static catalog', 'Certificate Archive · Static catalog');
+  output = output.replace('<h2 id="fallback-title">Seven tools for making.</h2>', '<h2 id="fallback-title">Five verified credentials.</h2>');
+  output = output.replace(
+    /      <div class="fallback__grid" aria-label="Seven conceptual hardcovers">[\s\S]*?      <\/div>\n      <div class="fallback__footer">/,
+    `      <div class="fallback__grid" aria-label="Five credential volumes">\n${fallbackBooks}\n      </div>\n      <div class="fallback__footer">`
+  );
+  output = output.replace(
+    '        <span>All bindings, motifs, descriptions, geometry, and cover artworks are original to this conceptual study.</span>\n        <span>Product names are used editorially and remain the property of their respective owners.</span>',
+    '        <span>Credential dates and status are presented as listed in this portfolio archive.</span>\n        <span>Fortinet and Microsoft names remain the property of their respective owners.</span>'
+  );
   output = output.replace(
     '<dl class="meta-list">\n        <div>',
     '<dl class="meta-list">\n        <div class="meta-status">\n          <dt>Status</dt>\n          <dd id="detail-status" class="credential-status"></dd>\n        </div>\n        <div>'
@@ -242,8 +309,12 @@ function buildCertificateShelf(source, books) {
     '      window.addEventListener("blur", onWindowBlur);\n      window.addEventListener("message", onParentPlaybackMessage);'
   );
   output = output.replace(
+    '      fallbackStatus.textContent = message;',
+    '      fallbackStatus.textContent = message;\n      window.clearTimeout(window.__certificateArchiveWatchdog);\n      window.parent.postMessage({ type: "certificate-archive:ready" }, "*");'
+  );
+  output = output.replace(
     '      experience.classList.add("webgl-ready");\n      requestFrame();',
-    '      experience.classList.add("webgl-ready");\n      window.parent.postMessage({ type: "certificate-archive:ready" }, "*");\n      requestFrame();'
+    '      experience.classList.add("webgl-ready");\n      window.clearTimeout(window.__certificateArchiveWatchdog);\n      window.parent.postMessage({ type: "certificate-archive:ready" }, "*");\n      requestFrame();'
   );
   output = output.replace(
     '        if (!ready || suspended || !renderer) return;',

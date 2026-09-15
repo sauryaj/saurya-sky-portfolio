@@ -94,11 +94,7 @@ export function CompleteShelfLandingPage({
     };
 
     window.addEventListener('message', receiveFrameMessage);
-    const readyFallback = window.setTimeout(() => setReady(true), 1500);
-    return () => {
-      window.removeEventListener('message', receiveFrameMessage);
-      window.clearTimeout(readyFallback);
-    };
+    return () => window.removeEventListener('message', receiveFrameMessage);
   }, []);
 
   useEffect(() => {
@@ -174,7 +170,6 @@ export function CompleteShelfLandingPage({
         tabIndex={state === 'active' ? 0 : -1}
         onLoad={(event) => {
           applySaintJeromeWallpaper(event.currentTarget);
-          setReady(true);
         }}
       />
     </div>

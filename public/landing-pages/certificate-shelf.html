@@ -1595,11 +1595,27 @@
   <script type="importmap">
     {
       "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+        "three": "../vendor/three-r165/three.module.js",
+        "three/addons/": "../vendor/three-r165/addons/"
       }
     }
   </script>
+
+    <style id="certificate-local-runtime">
+      html,
+      body,
+      .experience {
+        background-color: #403125;
+      }
+
+      .experience {
+        background-image:
+          linear-gradient(rgba(30, 22, 18, 0.54), rgba(30, 22, 18, 0.54)),
+          url("../artwork/saint-jerome-study-1920.jpg");
+        background-position: center;
+        background-size: cover;
+      }
+    </style>
 <style id="certificate-archive-status">
       .credential-status { color: #c87046; font-weight: 600; }
       .credential-status[data-status="expired"] { color: #d98b78; }
@@ -1764,24 +1780,22 @@
       <div class="fallback__header">
         <div>
           <p class="fallback__kicker">Certificate Archive · Static catalog</p>
-          <h2 id="fallback-title">Seven tools for making.</h2>
+          <h2 id="fallback-title">Five verified credentials.</h2>
         </div>
         <p class="fallback__status" id="fallback-status">
           The complete catalog remains readable while the interactive shelf is prepared.
         </p>
       </div>
-      <div class="fallback__grid" aria-label="Seven conceptual hardcovers">
-        <article class="fallback-book" style="--book-color:#182a43;--book-foil:#c87046;--book-height:390px"><span>Volume I</span><strong>Codex</strong></article>
-        <article class="fallback-book" style="--book-color:#c24d24;--book-foil:#efc16d;--book-height:356px"><span>Volume II</span><strong>Claude Code</strong></article>
-        <article class="fallback-book" style="--book-color:#afc400;--book-foil:#171a16;--book-height:374px"><span>Volume III</span><strong>Cursor</strong></article>
-        <article class="fallback-book" style="--book-color:#1537a1;--book-foil:#dbe8f1;--book-height:404px"><span>Volume IV</span><strong>Antigravity</strong></article>
-        <article class="fallback-book" style="--book-color:#c83222;--book-foil:#efb0aa;--book-height:365px"><span>Volume V</span><strong>Figma</strong></article>
-        <article class="fallback-book" style="--book-color:#da3b2f;--book-foil:#ff8eab;--book-height:385px"><span>Volume VI</span><strong>Framer</strong></article>
-        <article class="fallback-book" style="--book-color:#78a7bd;--book-foil:#e4e7e5;--book-height:398px"><span>Volume VII</span><strong>Xcode</strong></article>
+      <div class="fallback__grid" aria-label="Five credential volumes">
+        <article class="fallback-book" style="--book-color:#d9281c;--book-foil:#fff2e6;--book-height:386px"><span>Volume I · Fortinet</span><strong>Threat Landscape 3.0</strong></article>
+        <article class="fallback-book" style="--book-color:#2868a8;--book-foil:#e6f3ff;--book-height:357px"><span>Volume II · Microsoft</span><strong>MTA Networking</strong></article>
+        <article class="fallback-book" style="--book-color:#384f9f;--book-foil:#f3d0a4;--book-height:379px"><span>Volume III · Microsoft</span><strong>Identity &amp; Access</strong></article>
+        <article class="fallback-book" style="--book-color:#0078d4;--book-foil:#d9f0ff;--book-height:415px"><span>Volume IV · Microsoft</span><strong>Azure Security</strong></article>
+        <article class="fallback-book" style="--book-color:#167c80;--book-foil:#f6df9a;--book-height:372px"><span>Volume V · Microsoft</span><strong>Endpoint Admin</strong></article>
       </div>
       <div class="fallback__footer">
-        <span>All bindings, motifs, descriptions, geometry, and cover artworks are original to this conceptual study.</span>
-        <span>Product names are used editorially and remain the property of their respective owners.</span>
+        <span>Credential dates and status are presented as listed in this portfolio archive.</span>
+        <span>Fortinet and Microsoft names remain the property of their respective owners.</span>
       </div>
     </section>
 
@@ -1793,6 +1807,23 @@
     </div>
   </main>
 
+
+  <script>
+    window.__certificateArchiveWatchdog = window.setTimeout(() => {
+      const experience = document.querySelector("#experience");
+      if (experience?.classList.contains("webgl-ready")) return;
+
+      const loading = document.querySelector("#loading");
+      const staticFallback = document.querySelector("#static-fallback");
+      const fallbackStatus = document.querySelector("#fallback-status");
+      if (loading) loading.hidden = true;
+      if (staticFallback) staticFallback.hidden = false;
+      if (fallbackStatus) {
+        fallbackStatus.textContent = "The interactive shelf is taking longer than expected. The complete static catalog remains available.";
+      }
+      window.parent.postMessage({ type: "certificate-archive:ready" }, "*");
+    }, 6000);
+  </script>
   <script type="module">
     import * as THREE from "three";
     import { OrbitControls } from "three/addons/controls/OrbitControls.js";
@@ -5849,6 +5880,8 @@
       experience.classList.remove("webgl-ready");
       staticFallback.hidden = false;
       fallbackStatus.textContent = message;
+      window.clearTimeout(window.__certificateArchiveWatchdog);
+      window.parent.postMessage({ type: "certificate-archive:ready" }, "*");
     }
 
     function handleContextLost(event) {
@@ -6025,6 +6058,7 @@
       renderer.render(scene, camera);
       loading.hidden = true;
       experience.classList.add("webgl-ready");
+      window.clearTimeout(window.__certificateArchiveWatchdog);
       window.parent.postMessage({ type: "certificate-archive:ready" }, "*");
       requestFrame();
 
