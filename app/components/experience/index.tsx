@@ -27,10 +27,18 @@ const Experience = () => {
   useFrame((sate, delta) => {
     const d = data.range(0.8, 0.2);
     const e = data.range(0.7, 0.2);
+    const reveal = THREE.MathUtils.smoothstep(data.range(0.72, 0.18), 0, 1);
 
     if (groupRef.current && !isActive) {
-      groupRef.current.position.y = d > 0 ? -1 : -30;
-      groupRef.current.visible = d > 0;
+      groupRef.current.visible = reveal > 0.001;
+      groupRef.current.position.y = THREE.MathUtils.damp(
+        groupRef.current.position.y,
+        THREE.MathUtils.lerp(-7, -1, reveal),
+        10,
+        delta,
+      );
+      const scale = THREE.MathUtils.lerp(0.94, 1, reveal);
+      groupRef.current.scale.setScalar(scale);
     }
 
     if (titleRef.current) {

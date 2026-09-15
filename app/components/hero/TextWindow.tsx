@@ -3,17 +3,17 @@
 import { Text, useScroll } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
-import * as THREE from "three";
+import type { Group } from "three";
 
 const TextWindow = () => {
   const data = useScroll();
-  const windowRef = useRef<THREE.Group>(null);
+  const windowRef = useRef<Group>(null);
 
   useFrame(() => {
     const c = data.range(0.65, 0.15);
 
     if (windowRef.current) {
-      windowRef.current.setRotationFromAxisAngle(new THREE.Vector3(0, -1, 0), 0.5 *Math.PI * c);
+      windowRef.current.rotation.y = -0.5 * Math.PI * c;
       windowRef.current.position.x =  -0.6 * c;
       windowRef.current.position.z = -0.6 * c;
     }

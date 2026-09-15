@@ -1,7 +1,7 @@
 import { useTexture } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import { usePortalStore, useScrollStore } from '@stores';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 import { CompleteShelfLandingPage } from './CompleteShelfLandingPage';
@@ -54,16 +54,24 @@ export function CertificateOverlay() {
   const portalPhase = usePortalStore(state => state.phase);
   const nearExperience = useScrollStore(state => state.scrollProgress > 0.55);
   const closePortal = usePortalStore(state => state.closePortal);
-  const shouldPrepare = nearExperience || activePortalId === 'certificates';
 
-  if (!shouldPrepare) return null;
+  useEffect(() => {
+    if (!nearExperience || document.querySelector('link[data-certificate-prefetch]')) return;
+    const prefetch = document.createElement('link');
+    prefetch.rel = 'prefetch';
+    prefetch.href = '/landing-pages/certificate-shelf.html';
+    prefetch.setAttribute('as', 'document');
+    prefetch.dataset.certificatePrefetch = 'true';
+    document.head.appendChild(prefetch);
+  }, [nearExperience]);
 
-  const state = activePortalId === 'certificates' ? portalPhase : 'idle';
+  if (activePortalId !== 'certificates') return null;
+
   const motion = PORTAL_MOTION.certificates;
 
   return (
     <CompleteShelfLandingPage
-      state={state}
+      state={portalPhase}
       enterDurationMs={motion.enter * 1000}
       exitDurationMs={motion.exit * 1000}
       headingFont="iowan-old-style"
