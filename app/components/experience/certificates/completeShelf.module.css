@@ -1,6 +1,7 @@
 .frame {
   position: fixed;
-  inset: 0;
+  inset: 1rem;
+  outline: 1px solid rgba(255, 255, 255, 0.55);
   z-index: 9;
   overflow: hidden;
   background:
@@ -143,4 +144,8 @@
     animation-duration: 1ms;
     animation-delay: 0ms;
   }
+}
+
+@media (max-width: 768px) {
+  .frame { inset: 0.75rem; }
 }

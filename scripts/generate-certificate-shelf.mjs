@@ -320,6 +320,12 @@ function buildCertificateShelf(source, books) {
     '        if (!ready || suspended || !renderer) return;',
     '        if (!ready || !renderer) return;'
   );
+  // Keep the authored scene, but cap raster work on high-density displays.
+  output = output.replace(
+    'Math.min(window.devicePixelRatio || 1, viewWidth < 820 ? 1.5 : 2)',
+    'Math.min(window.devicePixelRatio || 1, 1.5)'
+  );
+  output = output.replace('key.shadow.mapSize.set(2048, 2048);', 'key.shadow.mapSize.set(1024, 1024);');
   return output;
 }
 

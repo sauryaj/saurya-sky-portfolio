@@ -7,7 +7,7 @@ import gsap from "gsap";
 import { Suspense, useRef, useSyncExternalStore } from "react";
 import { isMobile } from "react-device-detect";
 
-import { useThemeStore } from "@stores";
+import { usePortalStore, useThemeStore } from "@stores";
 
 import ProgressLoader from "./ProgressLoader";
 import { ScrollHint } from "./ScrollHint";
@@ -18,6 +18,7 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
   const ref= useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const backgroundColor = useThemeStore((state) => state.theme.color);
+  const archiveActive = usePortalStore(state => state.activePortalId === "certificates" && state.phase === "active");
   const { progress } = useProgress();
   const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
 
@@ -68,7 +69,8 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
           shadows
           style={canvasStyle}
           ref={canvasRef}
-          dpr={[1, 2]}>
+          frameloop={archiveActive ? "never" : "always"}
+          dpr={[1, 1.5]}>
           <Suspense fallback={null}>
             <ambientLight intensity={0.5} />
 
