@@ -63,7 +63,7 @@ type ShelfFrameStyle = CSSProperties & {
 /**
  * The registered ThreeUI component is a complete authored HTML/Three.js
  * document. Keeping it in its own frame preserves its DOM, CSS, import map,
- * renderer and camera choreography, with a native catalog while it loads.
+ * renderer and camera choreography, with a native catalog if loading fails.
  */
 export function CompleteShelfLandingPage({
   className = '',
@@ -83,9 +83,8 @@ export function CompleteShelfLandingPage({
 }: CompleteShelfLandingPageProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [ready, setReady] = useState(false);
-  const [requested3D, setRequested3D] = useState(false);
   const [failed, setFailed] = useState(false);
-  const lightweight = !requested3D || failed;
+  const lightweight = failed;
 
   useEffect(() => {
     if (lightweight || ready) return;
@@ -174,15 +173,14 @@ export function CompleteShelfLandingPage({
       style={frameStyle}
       data-archive-status={lightweight ? 'catalog' : ready ? 'ready' : 'loading'}
     >
-      {(lightweight || !ready) && <CredentialShelf onOpen3D={lightweight ? () => {
+      {lightweight && <CredentialShelf onOpen3D={() => {
         setFailed(false);
         setReady(false);
-        setRequested3D(true);
-      } : undefined} />}
-      {!lightweight && <button className={styles.catalogReturn} onClick={() => {
-        setRequested3D(false);
-        setReady(false);
-      }}>Return to catalog</button>}
+      }} />}
+      {!lightweight && !ready && <div className={styles.loading} role="status">
+        <span className={styles.loadingMark} aria-hidden="true" />
+        <p>Opening the archive…</p>
+      </div>}
       {!lightweight && <iframe
         ref={iframeRef}
         title="Certificate Archive — Five Credentials"

@@ -34,8 +34,10 @@
 .mobileBook span { font-size: 12px; letter-spacing: .08em; }
 .mobileBook .volume { font: 80px/1 Georgia, serif; opacity: .55; }
 .catalogNote { font-size: 12px; opacity: .75; }
-.catalogReturn { position: absolute; right: 24px; top: 24px; z-index: 2; padding: 12px 18px; border: 1px solid #f8e9d477; border-radius: 24px; background: #231d18; color: #fff4df; cursor: pointer; }
-.catalogReturn:focus-visible { outline: 3px solid #f8d49a; outline-offset: 4px; }
+.loading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; color: #fff4df; font: 20px Georgia, serif; }
+.loadingMark { width: 28px; height: 36px; border: 1px solid #e5cba3; border-left: 4px solid #e5cba3; border-radius: 2px; }
+@media (prefers-reduced-motion: no-preference) { .loadingMark { animation: archive-pulse 1.5s ease-in-out infinite alternate; } }
+@keyframes archive-pulse { from { opacity: .35; } to { opacity: 1; } }
 @media (min-width: 820px) {
   .catalog { padding: 100px clamp(32px, 6vw, 100px) 48px; }
   .mobileBooks { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 28px; overflow: visible; }
