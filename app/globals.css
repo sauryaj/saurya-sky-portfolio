@@ -110,6 +110,15 @@ body {
   cursor: default;
 }
 
+.scroll-hint-content {
+  animation: scroll-hint-drift 1800ms ease-in-out infinite alternate;
+}
+
+@keyframes scroll-hint-drift {
+  from { transform: translateY(0); }
+  to { transform: translateY(-3px); }
+}
+
 :root {
   --scrollbarColor: #FFF;
   --scrollbarBackground: rgba(0, 0, 0, 0);
@@ -248,6 +257,10 @@ body.portal-returning [data-archive-status] {
 @media (prefers-reduced-motion: reduce) {
   .portal-close {
     animation-duration: 1ms;
+  }
+
+  .scroll-hint-content {
+    animation: none;
   }
 }
 

@@ -2,11 +2,12 @@ import gsap from "gsap";
 import Image from "next/image";
 import { useEffect } from "react";
 
-import { usePortalStore, useScrollStore } from "@stores";
+import { usePortalStore, useScrollStore, useThemeStore } from "@stores";
 
 export const ScrollHint = () => {
   const portal = usePortalStore((state) => state.activePortalId);
   const atScrollStart = useScrollStore((state) => state.scrollProgress === 0);
+  const darkTheme = useThemeStore((state) => state.theme.type === 'dark');
 
   // Show 'Scroll' for Hero and work portals, 'Pan' for Projects portal.
   let hintText = '';
@@ -42,9 +43,16 @@ export const ScrollHint = () => {
 
   return (
     <div className="fixed w-full bottom-5 scroll-hint" style={{ opacity: 0 }}>
-      <div className="flex items-center justify-center animate-pulse">
-        <Image src={svgSrc} width={18} height={18} alt="" loading="lazy" />
-        <span className="text-white">{hintText}</span>
+      <div className="flex items-center justify-center scroll-hint-content">
+        <Image
+          src={svgSrc}
+          width={18}
+          height={18}
+          alt=""
+          loading="lazy"
+          style={{ filter: darkTheme ? 'none' : 'brightness(0)', opacity: 0.82 }}
+        />
+        <span style={{ color: darkTheme ? '#fff' : '#07131c' }}>{hintText}</span>
       </div>
     </div>
   );

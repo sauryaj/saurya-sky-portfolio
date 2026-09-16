@@ -35,8 +35,6 @@ function CertificateCoverArt({ active, isMobile }: { active: boolean; isMobile: 
   </group>;
 }
 
-useTexture.preload(SAINT_JEROME_WALLPAPER);
-
 export default function Certificates() {
   const active = usePortalStore(state => (
     state.activePortalId === 'certificates' && state.phase !== 'exiting'
