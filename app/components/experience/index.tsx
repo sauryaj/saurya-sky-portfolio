@@ -1,7 +1,7 @@
 import { Text, useScroll } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
-import { usePortalStore, useScrollStore } from "@stores";
-import { useRef } from "react";
+import { usePortalStore } from "@stores";
+import { Suspense, useRef } from "react";
 
 import * as THREE from 'three';
 import GridTile from "./GridTile";
@@ -17,7 +17,6 @@ const Experience = () => {
   const groupRef = useRef<THREE.Group>(null);
   const data = useScroll();
   const isActive = usePortalStore((state) => !!state.activePortalId);
-  const prepareExperience = useScrollStore((state) => state.scrollProgress > 0.52);
 
   const fontProps = {
     font: "./soria-font.ttf",
@@ -80,7 +79,7 @@ const Experience = () => {
             textAlign='center'
             size={isMobile ? [3, 1.25] : [2.6, 4]}
             position={new THREE.Vector3(isMobile ? 0 : -2.8, isMobile ? 1.4 : 0, 0)}>
-            {prepareExperience ? <Work/> : null}
+            <Suspense fallback={null}><Work/></Suspense>
           </GridTile>
           <GridTile title='SIDE PROJECTS'
             id="projects"
@@ -88,12 +87,12 @@ const Experience = () => {
             textAlign='center'
             size={isMobile ? [3, 1.25] : [2.6, 4]}
             position={new THREE.Vector3(0, 0, 0)}>
-            {prepareExperience ? <Projects/> : null}
+            <Suspense fallback={null}><Projects/></Suspense>
           </GridTile>
           <GridTile title="CERTIFICATES" id="certificates" color="#b5aa8e" textAlign="center"
             size={isMobile ? [3, 1.25] : [2.6, 4]}
             position={new THREE.Vector3(isMobile ? 0 : 2.8, isMobile ? -1.4 : 0, 0)}>
-            {prepareExperience ? <Certificates /> : null}
+            <Suspense fallback={null}><Certificates /></Suspense>
           </GridTile>
         </group>
       </group>
