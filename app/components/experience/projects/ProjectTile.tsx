@@ -51,7 +51,7 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, da
     if (!projectRef.current) return;
     hoverAnimRef.current?.kill();
 
-    const [mesh, title, dateGroup, textBox, button] = projectRef.current.children;
+    const [mesh, title, dateGroup, textBox] = projectRef.current.children;
 
     hoverAnimRef.current = gsap.timeline();
     hoverAnimRef.current
@@ -71,11 +71,6 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, da
       .to((mesh as THREE.Mesh).material, { opacity: hovered ? 0.95 : 0.3 }, 0)
       .to(mesh.position, { y: hovered ? 1 : 0 }, 0);
 
-    if (project.url) {
-      hoverAnimRef.current
-        .to(button.scale, { y: hovered ? 1 : 0, x: hovered ? 1 : 0 }, 0)
-        .to(button.position, { z: hovered ? 0.3 : -1 }, 0);
-    }
   }, [hovered]);
 
   useEffect(() => {
@@ -87,15 +82,6 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, da
       });
     }
   }, [isProjectSectionActive]);
-
-  const handleClick = (e: ThreeEvent<MouseEvent>) => {
-    e.stopPropagation();
-    if (!project.url) return;
-    const button = e.eventObject;
-    gsap.to(button.position, { z: 0, duration: 0.1 })
-      .then(() => gsap.to(button.position, { z: 0.3, duration: 0.3 }));
-    setTimeout(() => window.open(project.url, '_blank', 'noopener,noreferrer'), 50);
-  };
 
   const handlePointerOver = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
@@ -164,27 +150,6 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, da
           fontSize={0.2}>
           {project.subtext}
         </Text>
-        {project.url && (
-          <group
-            position={[1.3, -0.6, -1]}
-            scale={[0, 0, 1]}
-            onClick={handleClick}
-            onPointerOver={() => document.body.style.cursor = 'pointer'}
-            onPointerOut={() => document.body.style.cursor = 'auto'}>
-            <mesh>
-              <boxGeometry args={[1.1, 0.4, 0.2]} />
-              <meshBasicMaterial color="#222" />
-              <Edges color="white" lineWidth={1} />
-            </mesh>
-            <Text
-              {...subtitleProps}
-              color="white"
-              position={[-0.4, 0.15, 0.2]}
-              fontSize={0.25}>
-              VIEW ↗
-            </Text>
-          </group>
-        )}
       </group>
     </group>
   );
