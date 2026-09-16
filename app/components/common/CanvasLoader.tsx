@@ -40,7 +40,12 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
 
   useGSAP(() => {
     if (progress === 100) {
-      gsap.to('.base-canvas', { opacity: 1, duration: 3, delay: 1 });
+      gsap.to('.base-canvas', {
+        opacity: 1,
+        duration: 0.8,
+        ease: 'power2.out',
+        overwrite: true,
+      });
     }
   }, [progress]);
 
