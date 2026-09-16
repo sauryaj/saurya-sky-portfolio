@@ -12,7 +12,7 @@ const FooterLinkItem = ({ link }: { link: FooterLink }) => {
   const [hovered, setHovered] = useState(false);
   const onPointerOver = () => setHovered(true);
   const onPointerOut = () => setHovered(false);
-  const onClick = () => window.open(link.url, '_blank');
+  const onClick = () => window.open(link.url, '_blank', 'noopener,noreferrer');
   const onPointerMove = (e: MouseEvent) => {
     if (isMobile) return;
     const hoverDiv = document.getElementById(`footer-link-${link.name}`);

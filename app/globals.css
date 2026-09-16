@@ -35,6 +35,81 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.portfolio-introduction,
+.portfolio-status {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.portfolio-keyboard-nav {
+  position: fixed;
+  z-index: 30;
+  top: 12px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  max-width: calc(100vw - 24px);
+  padding: 6px;
+  color: #f7f4ec;
+  background: rgba(16, 32, 45, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22);
+  transform: translate(-50%, calc(-100% - 18px));
+  transition: transform 180ms ease-out;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.portfolio-keyboard-nav::-webkit-scrollbar { display: none; }
+
+.portfolio-keyboard-nav:focus-within {
+  transform: translate(-50%, 0);
+}
+
+.portfolio-keyboard-nav span,
+.portfolio-keyboard-nav button,
+.portfolio-keyboard-nav a {
+  flex: 0 0 auto;
+  color: inherit;
+  font: 500 11px/1 var(--font-vercetti), sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.portfolio-keyboard-nav span {
+  padding: 8px 9px;
+  opacity: 0.6;
+}
+
+.portfolio-keyboard-nav button,
+.portfolio-keyboard-nav a {
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.portfolio-keyboard-nav button:focus-visible,
+.portfolio-keyboard-nav a:focus-visible {
+  outline: none;
+  border-color: currentColor;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.portfolio-keyboard-nav button:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
 :root {
   --scrollbarColor: #FFF;
   --scrollbarBackground: rgba(0, 0, 0, 0);
@@ -177,6 +252,20 @@ body.portal-returning [data-archive-status] {
 }
 
 @media screen and (max-width: 768px) {
+  .portfolio-keyboard-nav {
+    gap: 2px;
+  }
+
+  .portfolio-keyboard-nav span {
+    display: none;
+  }
+
+  .portfolio-keyboard-nav button,
+  .portfolio-keyboard-nav a {
+    padding-inline: 8px;
+    letter-spacing: 0.05em;
+  }
+
   .portal-return-hint {
     bottom: max(18px, env(safe-area-inset-bottom));
     width: max-content;

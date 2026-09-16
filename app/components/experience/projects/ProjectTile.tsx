@@ -94,7 +94,7 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick, da
     const button = e.eventObject;
     gsap.to(button.position, { z: 0, duration: 0.1 })
       .then(() => gsap.to(button.position, { z: 0.3, duration: 0.3 }));
-    setTimeout(() => window.open(project.url, '_blank'), 50);
+    setTimeout(() => window.open(project.url, '_blank', 'noopener,noreferrer'), 50);
   };
 
   const handlePointerOver = (e: ThreeEvent<MouseEvent>) => {

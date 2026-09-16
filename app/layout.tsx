@@ -53,8 +53,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: "#000000",
   initialScale: 1,
-  minimumScale: 1,
-  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -69,7 +67,7 @@ export default function RootLayout({
       >
         {children}
       </body>
-      <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ''}/>
+      {process.env.NEXT_PUBLIC_GA_ID ? <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID}/> : null}
     </html>
   );
 }
